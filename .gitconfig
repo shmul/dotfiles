@@ -1,5 +1,4 @@
 [core]
-  excludesfile = /Users/shmul/.gitignore
   editor = vim
   preloadindex = true
 
