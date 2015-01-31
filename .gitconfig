@@ -3,11 +3,6 @@
   editor = vim
   preloadindex = true
 
-[user]
-  name = $GIT_NAME
-  email = $EMAIL
-
-
 [color]
   local = yellow
   remote = green
