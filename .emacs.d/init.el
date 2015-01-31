@@ -297,7 +297,7 @@
     "Set point to the position of the last change." t)
   ;(require 'hippie-exp)
   (require 'magit)
-  (require 'nginx-mode)
+  (require 'nginx-mode nil 'noerror)
   (require 'multiple-cursors)
 
   )
@@ -305,7 +305,13 @@
 (defun setup-ocaml ()
   ;;;; from https://github.com/diml/utopa
   ;; Setup environment variables using opam
-  (dolist (var (car (read-from-string (shell-command-to-string "/usr/local/bin/opam config env --sexp"))))
+  (when macosx-p
+    (setq opam-where "/usr/local/bin/opam"))
+  (when linux-p
+    (setq opam-where "/usr/bin/opam"))
+
+  (dolist (var (car (read-from-string (shell-command-to-string
+                                       (concat opam-where " config env --sexp")))))
     (setenv (car var) (cadr var)))
 
   ;; Update the emacs path
@@ -353,7 +359,7 @@
   (load custom-file)
 
   ;; do things after package initialization
-  (setup-helm)
+  ;(setup-helm)
   (setup-igrep)
   (setup-scrat)
   (setup-postack)
