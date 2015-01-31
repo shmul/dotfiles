@@ -13,6 +13,7 @@
 (defvar linux-p (string-match "gnu/linux" (symbol-name system-type)))
 
 
+
 (defun setup-helm ()
 
   (require 'helm-config)
@@ -228,7 +229,6 @@
   (global-set-key "\C-cy" 'copy-this-line)
   (global-set-key "\e0" 'delete-window)
   (global-set-key "\C-cr" 'revert-buffer-dont-ask)
-  (global-set-key "\C-cd" 'open-dump)
   (global-set-key "\C-cc" 'goto-last-change)
   (global-set-key "\C-cf" 'find-file-at-point)
   (global-set-key (kbd "C-<tab>") 'comint-replace-by-expanded-filename)
@@ -236,7 +236,7 @@
   (global-set-key (kbd "C-M-<down>") 'forward-list)
   (global-set-key (kbd "C-M-<up>") 'backward-list)
   (global-set-key (kbd "M-<return>") 'hippie-expand)
-  (global-set-key (kbd "C-c M-<right>") 'jump-to-white)
+  (global-set-key (kbd "C-M-<right>") 'jump-to-white)
   (global-set-key (kbd "C-<right>") 'forward-word)
   (global-set-key (kbd "C-<left>") 'backward-word)
 
@@ -247,14 +247,8 @@
   (global-set-key "\C-cg" 'igrep)
   (global-set-key "\C-cG" 'igrep-find)
   (global-set-key "\C-c>" 'open-init-el)
-  (global-set-key "\C-cH" 'jsp-indent-java)
-
-  (global-set-key (kbd "C-c SPC") 'undo-group-boundary)
-  (global-set-key "\C-c\\" 'undo-group)
 
                                         ;(global-set-key (kbd "C-c M-w") 'append-to-register)
-  (global-set-key "\C-cW" 'woman-find-file)
-
   (global-set-key "\C-cC" 'recompile)
 
   (global-set-key (kbd "C-c C-<tab>") 'sourcepair-load)
@@ -355,6 +349,32 @@
           try-complete-file-name))
   )
 
+(defun setup-swoop ()
+  (require 'swoop)
+  (global-set-key (kbd "C-o")   'swoop)
+  (global-set-key (kbd "C-M-o") 'swoop-multi)
+  (global-set-key (kbd "M-o")   'swoop-pcre-regexp)
+  (global-set-key (kbd "C-S-o") 'swoop-back-to-last-position)
+
+  ;; t:   Show swoop lines within the current window
+  ;; nil: Show swoop lines in another window
+  (setq swoop-window-split-current-window: nil)
+  ;; Determine the split direction 'split-window-horizontally or 'split-window-vertically
+  (setq swoop-window-split-direction: 'split-window-vertically)
+
+  ;; Change whole buffer's font size (t or nil)
+  (setq swoop-font-size-change: t)
+  ;; Font size (e.g. 0.8, 1.0, 1.5, 80, 135)
+  (setq swoop-font-size: 0.9)
+  ;;
+  ;; Enable around target lines magnifier (t or nil)
+  (setq swoop-use-target-magnifier: t)
+  ;; Magnify area from target line
+  (setq swoop-use-target-magnifier-around: 10)
+  ;; Font size for magnify area (e.g. 0.8, 1.0, 1.5, 80, 135)
+  (setq swoop-use-target-magnifier-size: 1.2)
+  )
+
 (defun my-after-init-hook ()
   (load custom-file)
 
@@ -367,6 +387,7 @@
   (setup-ocaml)
   (setup-ido)
   (setup-hippie)
+  (setup-swoop)
   (setup-misc-modes)
   (set-theme)
   (set-keys)
