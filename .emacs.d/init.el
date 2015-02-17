@@ -1,9 +1,3 @@
-(setenv "USER"  "shmul")
-(setenv "LONGNAME"  "shmulik")
-(setq user-full-name "Shmulik Regev")
-
-
-
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa"))
 
