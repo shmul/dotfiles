@@ -22,25 +22,27 @@
   (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
   (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
 
-     (when (executable-find "curl")
-       (setq helm-google-suggest-use-curl-p t))
+  (when (executable-find "curl")
+    (setq helm-google-suggest-use-curl-p t))
 
-     (setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
-           helm-buffers-fuzzy-matching           t ; fuzzy matching buffer names when non--nil
-           helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
-           helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
-           helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
-           helm-ff-file-name-history-use-recentf t)
+  (setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
+        helm-buffers-fuzzy-matching           t ; fuzzy matching buffer names when non--nil
+        helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
+        helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
+        helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
+        helm-ff-file-name-history-use-recentf t)
 
 
-     )
+  )
+
 (defun system-setup ()
   (when macosx-p
     (setq mac-option-modifier 'meta)
     (setq default-input-method "MacOSX")
     (add-to-list
      'default-frame-alist
-     '(font . "-apple-Bitstream_Vera_Sans_Mono-medium-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
+                                        ;'(font . "-apple-Bitstream_Vera_Sans_Mono-medium-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
+     '(font . "-*-Hack-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
     )
   (set-frame-height (selected-frame) 68)
   (set-frame-width (selected-frame) 91)
@@ -60,21 +62,18 @@
   (which-function-mode)
   (mouse-avoidance-mode 'cat-and-mouse)
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
-)
+  )
 
 
 (defun mode-hooks ()
 
   (defun my-default-mode-hook ()
-  )
+    )
 
   (defun my-cc-mode-hook ()
     (my-default-mode-hook)
-    (if (use-curl-c-style-p)
-        (progn
-          (c-add-style "curl" curl-c-style t)
-          (c-set-style "curl"))
-      (c-set-style "gnu"))
+    (setq c-default-style "k&r"
+          c-basic-offset 2)
     (setq show-trailing-whitespace t)
     (c-toggle-hungry-state)
     (c-toggle-auto-state -1))
@@ -110,6 +109,7 @@
     (setq web-mode-script-padding 1)
     (setq web-mode-block-padding 0)
     (setq web-mode-comment-style 2)
+    (hl-tags-mode 1)
     )
 
   (add-hook 'emacs-lisp-mode-hook 'my-default-mode-hook)
@@ -139,6 +139,11 @@
   (add-hook 'objc-mode-hook 'my-default-mode-hook)
   (add-hook 'web-mode-hook  'my-web-mode-hook)
   (add-hook 'compilation-finish-functions 'my-shorten-filenames-in-compilation)
+
+  (defun maybe-goldy-offset ()
+    (if (string-match "goldy" buffer-file-name)
+        (setq c-basic-offset 4)))
+  (add-hook 'c-mode-hook 'maybe-goldy-offset)
   )
 
 
@@ -243,6 +248,7 @@
   (global-set-key "\C-c>" 'open-init-el)
 
                                         ;(global-set-key (kbd "C-c M-w") 'append-to-register)
+  (global-set-key "\C-c\C-c" 'compile)
   (global-set-key "\C-cC" 'recompile)
 
   (global-set-key (kbd "C-c C-<tab>") 'sourcepair-load)
@@ -257,6 +263,9 @@
   (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
   (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 
+  (global-set-key (kbd "C-x g") 'magit-status)
+  (global-set-key (kbd "C-`") 'switch-to-previous-buffer)
+  (global-set-key (kbd "C-x C-g") 'ack)
   )
 
 (defun setup-scrat ()
@@ -276,17 +285,19 @@
   )
 
 (defun setup-tramp ()
-    (require 'tramp)
-    (setq tramp-default-method "ssh")
-    )
+  (require 'tramp)
+  (setq tramp-default-method "ssh")
+  )
 
 (defun setup-misc-modes ()
   (autoload 'goto-last-change "goto-last-change"
     "Set point to the position of the last change." t)
-  ;(require 'hippie-exp)
+                                        ;(require 'hippie-exp)
   (require 'magit)
   (require 'nginx-mode nil 'noerror)
   (require 'multiple-cursors)
+  (require 'sourcepair)
+  (require 'hl-tags-mode)
 
   )
 
@@ -312,6 +323,22 @@
 
   ;; Automatically load utop.el
   (autoload 'utop "utop" "Toplevel for OCaml" t)
+
+                                        ; typical error - File "graph.ml", line 46, characters 38-41:
+
+                                        ;  (add-to-list 'compilation-error-regexp-alist 'corebuild)
+                                        ;  (add-to-list 'compilation-error-regexp-alist-alist
+                                        ;               '(corebuild "File \"\\(.+?\\)\", line \\([0-9]+\\), characters \\([0-9]+\\)"
+
+                                        ;                       1 2 3))
+  ;; merlin
+  (autoload 'merlin-mode "merlin" "Merlin mode" t)
+  (setq merlin-command "/Users/shmul/.opam/4.01.0/bin/ocamlmerlin")
+  (add-hook 'tuareg-mode-hook 'merlin-mode)
+  (add-hook 'caml-mode-hook 'merlin-mode)
+  (setq merlin-use-auto-complete-mode 'easy)
+  ;; Use opam switch to lookup ocamlmerlin binary
+                                        ;(setq merlin-command 'opam)
   )
 
 (defun set-theme ()
@@ -369,6 +396,50 @@
   (setq swoop-use-target-magnifier-size: 1.2)
   )
 
+(defun setup-expand-region ()
+  (require 'expand-region)
+  (global-set-key (kbd "C-=") 'er/expand-region)
+  )
+
+(defun setup-smex ()
+
+  (smex-initialize)
+  (global-set-key (kbd "M-x") 'smex)
+  (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+  ;; This is your old M-x.
+  (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
+  )
+
+(defun setup-corral  ()
+  (global-set-key (kbd "M-9") 'corral-parentheses-backward)
+  (global-set-key (kbd "M-0") 'corral-parentheses-forward)
+  (global-set-key (kbd "M-[") 'corral-brackets-backward)
+  (global-set-key (kbd "M-]") 'corral-brackets-forward)
+  (global-set-key (kbd "M-{") 'corral-braces-backward)
+  (global-set-key (kbd "M-}") 'corral-braces-forward)
+  (global-set-key (kbd "M-\"") 'corral-double-quotes-backward)
+  (setq corral-preserve-point t)
+  )
+
+(defun setup-anzu ()
+  (global-anzu-mode +1)
+  (global-set-key (kbd "M-%") 'anzu-query-replace)
+  (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
+  )
+
+(defun setup-notes-taking ()
+  (when (require 'deft nil 'noerror)
+    (setq
+     deft-extensions '("org" "txt")
+     deft-directory "~/Documents/deft/")
+    (global-set-key (kbd "<f9>") 'deft))
+  )
+
+(defun setup-smartwin ()
+  (require 'smartwin)
+  (smartwin-mode 1)
+  )
+
 (defun my-after-init-hook ()
   (load custom-file)
 
@@ -382,7 +453,13 @@
   (setup-ido)
   (setup-hippie)
   (setup-swoop)
+  (setup-expand-region)
   (setup-misc-modes)
+  (setup-smex)
+  (setup-corral)
+  (setup-anzu)
+  (setup-notes-taking)
+  (setup-smartwin)
   (set-theme)
   (set-keys)
   (mode-hooks)
