@@ -257,31 +257,18 @@ already in!"
 (defun put-file-in-register (register path)
   (set-register register `(file . ,path)))
 
-;;; from http://www.dotemacs.de/dotfiles/JackRepenning.emacs.html
-(defun sum-column (start end arg)
-  "Add up (presumed) numbers in the column defined by START and END.
-Insert if ARG."
-  (interactive "r\nP")
-  (if (< end start) (let (tmp)
-                      (setq tmp start)
-                      (setq start end)
-                      (setq end tmp)))
-  (save-excursion
-    (goto-char start)
-    (let ((numcol (current-column))
-          (numend (save-excursion (goto-char end) (current-column)))
-          (sum 0))
-      (while (< (point) end)
-        (setq sum (+ sum (string-to-number
-                          (buffer-substring (point)
-                                            (progn
-                                              (move-to-column numend t)
-                                              (point))))))
-        (beginning-of-line 2)
-        (move-to-column numcol t))
-      (if arg (insert (number-to-string sum)))
-      (message "Total: %.2f" sum))))
 
+(defun sum-column (start end)
+    "Adds numbers in a rectangle"
+    (interactive "r")
+    (copy-rectangle-to-register 9 start end)
+    (set-buffer (get-buffer-create "*calc-sum*"))
+    (erase-buffer)
+    (insert-register 9)
+    (let ((sum 0))
+      (while (re-search-forward "[0-9]*\\.?[0-9]+" nil t)
+        (setq sum (+ sum (string-to-number (match-string 0)))))
+      (message "Sum: %f" sum)))
 ;;;; from www.cabochon.com/~stevey/blog-rants/my-dot-emacs-file.html
 ;;
 ;;  Never understood why Emacs doesn't have this function.
@@ -558,3 +545,75 @@ prompt the user for a coding system."
     (and found (goto-char (1+ (car found))))
     found))
 (put 'upcase-region 'disabled nil)
+
+; ;; from http://emacswiki.org/emacs/IndentingC
+ (defun c-reformat-buffer()
+   (interactive)
+   (save-buffer)
+   (setq sh-indent-command (concat
+                            "indent "
+                            "-bad -brf -brs -nfbs -ce -i2 -npsl -nut -cli1 -di1 "
+                            " "
+                           buffer-file-name
+                           )
+        )
+  (mark-whole-buffer)
+  (universal-argument)
+  (shell-command-on-region
+   (point-min)
+   (point-max)
+   sh-indent-command
+   (buffer-name)
+   )
+  (save-buffer)
+  )
+
+;; http://www.emacswiki.org/emacs/SwitchingBuffers#toc5
+(defun switch-to-previous-buffer ()
+  "Switch to most recent buffer. Repeated calls toggle back and forth between the most recent two buffers."
+  (interactive)
+  (switch-to-buffer (other-buffer (current-buffer) 1)))
+
+
+;; http://paste.lisp.org/display/304865
+(defmacro th/define-context-key (keymap key dispatch)
+  "Define KEY in KEYMAP to execute according to DISPATCH.
+
+DISPATCH is a form that is evaluated and should return the
+command to be executed.
+
+If DISPATCH returns nil, then the command normally bound to KEY
+will be executed.
+
+Example:
+
+  (th/define-context-key hs-minor-mode-map
+     (kbd \"<C-tab>\")
+     (cond
+      ((not (hs-already-hidden-p))
+       'hs-hide-block)
+      ((hs-already-hidden-p)
+       'hs-show-block)))
+
+This will make <C-tab> show a hidden block.  If the block is
+shown, then it'll be hidden."
+  `(define-key ,keymap ,key
+     `(menu-item "context-key" ignore
+		 :filter ,(lambda (&optional ignored)
+			    ,dispatch))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;; Some usages                                                         ;;
+;;                                                                        ;;
+;; (th/define-context-key outline-minor-mode-map                          ;;
+;; 		       (kbd "TAB")                                                  ;;
+;; 		       (when (th/outline-context-p)                                 ;;
+;; 			 'org-cycle))                                                     ;;
+;;                                                                        ;;
+;; ;; Jump out of a TeX macro when pressing TAB twice.                    ;;
+;; (th/define-context-key TeX-mode-map (kbd "TAB")                        ;;
+;; 	 (when (and (= 1 (length (this-command-keys-vector)))                 ;;
+;; 		    (equal last-command-event (elt (this-command-keys-vector) 0))   ;;
+;; 		    (TeX-current-macro))                                            ;;
+;; 	   #'th/TeX-goto-macro-end)))                                         ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
