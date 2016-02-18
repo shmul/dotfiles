@@ -62,6 +62,8 @@
   (which-function-mode)
   (mouse-avoidance-mode 'cat-and-mouse)
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
+  (setq confirm-kill-emacs 'y-or-n-p)
+  (setq tab-always-indent 'complete)
   )
 
 
@@ -184,28 +186,19 @@
   (add-to-mode-list "\\.html?\\'" 'web-mode)
   (add-to-mode-list "\\.yml$" 'yaml-mode)
   (add-to-mode-list "\\.yaml$" 'yaml-mode)
+  (add-to-mode-list "\\.md$" 'markdown-mode)
 
   )
 
 (defun setup-igrep ()
-  (autoload (function igrep) "igrep"
-    "*Run `grep` PROGRAM to match EXPRESSION in FILES..." t)
-  (autoload (function igrep-find) "igrep"
-    "*Run `grep` via `find`..." t)
-  (autoload (function dired-do-igrep) "igrep"
-    "*Run `grep` on the marked (or next prefix ARG) files." t)
-  (autoload (function dired-do-igrep-find) "igrep"
-    "*Run `grep` via `find` on the marked (or next prefix ARG) directories." t)
-  (setq igrep-options "-i -s")
-  (when windows-p
-    (setq igrep-program "c:\\cygwin\\bin\\grep.exe")
-    (setq igrep-find-program "c:\\cygwin\\bin\\find.exe")
-    )
-  (when macosx-p
-    (setq igrep-find-use-xargs nil))
-  (setq igrep-expression-quote-char ?')
-  (setq igrep-parenthesis-escape-char ?\\)
+  (use-package igrep
+    :commands (igrep igrep-find dired-do-igrep dired-do-igrep-find)
 
+    :config
+    (setq igrep-options "-i -s")
+    (setq igrep-expression-quote-char ?')
+    (setq igrep-parenthesis-escape-char ?\\)
+    (setq igrep-find-use-xargs nil))
   )
 
 (defun set-keys ()
@@ -269,35 +262,39 @@
   )
 
 (defun setup-scrat ()
-  (autoload 'scratch "scrat" nil t)
-  (defun jot () (interactive)
-         (scratch "*jot*" 'text-mode))
-  (defun jotter () (interactive)
-         (scratch "*jotter*" 'text-mode))
-  (defun joty () (interactive)
-         (scratch "*joty*" 'text-mode))
-  )
+  (use-package scrat
+    :config
+    (defun jot () (interactive)
+           (scratch "*jot*" 'text-mode))
+    (defun jotter () (interactive)
+           (scratch "*jotter*" 'text-mode))
+    (defun joty () (interactive)
+           (scratch "*joty*" 'text-mode))
+    )
+ )
 
 (defun setup-postack ()
-  (load-library "postack")
-  (global-set-key "\C-c(" 'postack-push)
-  (global-set-key "\C-c)" 'postack-pop)
+  (use-package postack
+    :bind
+    ("C-c (" . postack-push)
+    ("C-c )" . postack-pop)
+    )
   )
 
 (defun setup-tramp ()
-  (require 'tramp)
-  (setq tramp-default-method "ssh")
+  (use-package tramp
+    :config
+    (setq tramp-default-method "ssh")
+    )
   )
 
 (defun setup-misc-modes ()
-  (autoload 'goto-last-change "goto-last-change"
-    "Set point to the position of the last change." t)
-                                        ;(require 'hippie-exp)
-  (require 'magit)
-  (require 'nginx-mode nil 'noerror)
-  (require 'multiple-cursors)
-  (require 'sourcepair)
-  (require 'hl-tags-mode)
+  (use-package goto-last-change)
+  (use-package magit)
+  (use-package nginx-mode)
+  (use-package multiple-cursors)
+  (use-package sourcepair)
+  (use-package hl-tags-mode)
 
   )
 
@@ -341,33 +338,45 @@
                                         ;(setq merlin-command 'opam)
   )
 
-(defun set-theme ()
-  (require 'color-theme)
-  (color-theme-initialize)
+(defun setup-theme ()
+  (use-package color-theme
+    :config
+    (color-theme-initialize)
   )
+)
 
 (defun setup-ido ()
-  (ido-mode 1)
-  (setq
-   read-buffer-function 'ido-read-buffer
-   ido-enable-flex-matching t)
-
+  (use-package ido
+    :config
+    (ido-mode 1)
+    (setq
+     read-buffer-function 'ido-read-buffer
+     ido-enable-flex-matching t)
                                         ; from emacs wiki
-  (setq ido-execute-command-cache nil)
+    (setq ido-execute-command-cache nil))
   )
 
 (defun setup-hippie ()
-  (require 'hippie-exp)
+  (use-package hippie-exp
+    :config
+    (setq hippie-expand-try-functions-list
+          '(try-expand-dabbrev
+            try-expand-all-abbrevs
+            try-expand-dabbrev-all-buffers
+            try-expand-dabbrev-from-kill
+            try-expand-list
+            try-expand-line
+            try-complete-file-name-partially
+            try-complete-file-name))
+    )
+  )
 
-  (setq hippie-expand-try-functions-list
-        '(try-expand-dabbrev
-          try-expand-all-abbrevs
-          try-expand-dabbrev-all-buffers
-          try-expand-dabbrev-from-kill
-          try-expand-list
-          try-expand-line
-          try-complete-file-name-partially
-          try-complete-file-name))
+(defun setup-auto-complete ()
+  (use-package auto-complete-config
+    :config
+    (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+    (ac-config-default)
+    )
   )
 
 (defun setup-swoop ()
@@ -397,17 +406,35 @@
   )
 
 (defun setup-expand-region ()
-  (require 'expand-region)
-  (global-set-key (kbd "C-=") 'er/expand-region)
+  (use-package expand-region
+    :bind
+    ("C-=" . er/expand-region)
+    )
   )
 
 (defun setup-smex ()
-
-  (smex-initialize)
-  (global-set-key (kbd "M-x") 'smex)
-  (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+  (use-package smex
+    :config
+    (smex-initialize)
+    :bind
+    ("M-x" . smex)
+    ("M-X" . smex-major-mode-commands)
   ;; This is your old M-x.
-  (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
+    ( "C-c C-c M-x" . execute-extended-command)
+    )
+  )
+
+(defun setup-swiper ()
+  (use-package swiper
+    :config
+    (ivy-mode 1)
+    (setq ivy-use-virtual-buffers t)
+    :bind
+    ("\C-S" . swiper)
+    ("\C-R"  . swiper)
+    ("C-c C-r" . ivy-resume)
+    ([f6] . ivy-resume)
+    )
   )
 
 (defun setup-corral  ()
@@ -422,9 +449,13 @@
   )
 
 (defun setup-anzu ()
-  (global-anzu-mode +1)
-  (global-set-key (kbd "M-%") 'anzu-query-replace)
-  (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
+  (use-package anzu
+    :config
+    (global-anzu-mode 1)
+    :bind
+    ("M-%" . anzu-query-replace)
+    ("C-M-%" . anzu-query-replace-regexp)
+    )
   )
 
 (defun setup-notes-taking ()
@@ -440,6 +471,92 @@
   (smartwin-mode 1)
   )
 
+(defun setup-fuzzy ()
+  (use-package fuzzy
+    :config
+    (turn-on-fuzzy-isearch)
+    )
+  )
+
+(defun setup-git-gutter ()
+  (use-package git-gutter
+
+                                        ;(global-git-gutter-mode t)
+    :bind
+    ("C-x M-g" . git-gutter:toggle)
+    ("C-x v =" . git-gutter:popup-hunk)
+    ;; Jump to next/previous hunk
+    ("C-x p" . git-gutter:previous-hunk)
+    ("C-x n" . git-gutter:next-hunk)
+    ;; Stage current hunk
+    ("C-x v s" . git-gutter:stage-hunk)
+    ;; Revert current hunk
+    ("C-x v r" . git-gutter:revert-hunk)
+    )
+  )
+
+(defun setup-docker ()
+  ;; from here http://www.emacswiki.org/emacs/TrampAndDocker
+;; Open files in Docker containers like so: /docker:drunk_bardeen:/etc/passwd
+  (push
+   (cons
+    "docker"
+    '((tramp-login-program "docker")
+      (tramp-login-args (("exec" "-it") ("%h") ("/bin/bash")))
+      (tramp-remote-shell "/bin/sh")
+      (tramp-remote-shell-args ("-i") ("-c"))))
+   tramp-methods)
+
+  (defadvice tramp-completion-handle-file-name-all-completions
+      (around dotemacs-completion-docker activate)
+    "(tramp-completion-handle-file-name-all-completions \"\" \"/docker:\" returns
+    a list of active Docker container names, followed by colons."
+    (if (equal (ad-get-arg 1) "/docker:")
+        (let* ((dockernames-raw (shell-command-to-string "docker ps | perl -we 'use strict; $_ = <>; m/^(.*)NAMES/ or die; my $offset = length($1); while(<>) {substr($_, 0, $offset, q()); chomp; for(split m/\\W+/) {print qq($_:\n)} }'"))
+               (dockernames (cl-remove-if-not
+                             #'(lambda (dockerline) (string-match ":$" dockerline))
+                             (split-string dockernames-raw "\n"))))
+          (setq ad-return-value dockernames))
+      ad-do-it))
+
+  )
+
+
+(defun setup-go ()
+  (use-package go
+    :config
+    (exec-path-from-shell-initialize)
+    (exec-path-from-shell-copy-env "GOPATH")
+    )
+  )
+
+(defun setup-auto-indent ()
+
+  ;; from https://www.emacswiki.org/emacs/AutoIndentation
+  (dolist (command '(yank yank-pop))
+    (eval `(defadvice ,command (after indent-region activate)
+             (and (not current-prefix-arg)
+                  (member major-mode '(emacs-lisp-mode lisp-mode
+                                                       clojure-mode    scheme-mode
+                                                       haskell-mode    ruby-mode
+                                                       rspec-mode      python-mode
+                                                       c-mode          c++-mode
+                                                       objc-mode       latex-mode
+                                                       go-mode         web-mode
+                                                       js-mode         plain-tex-mode
+                                                       ))
+                  (let ((mark-even-if-inactive transient-mark-mode))
+                    (indent-region (region-beginning) (region-end) nil))))))
+
+  (defadvice yank (around html-yank-indent)
+    "Indents after yanking."
+    (let ((point-before (point)))
+      ad-do-it
+      (when (eq major-mode 'html-mode) ;; check what mode we're in
+        (indent-region point-before (point)))))
+  (ad-activate 'yank)
+
+  )
 (defun my-after-init-hook ()
   (load custom-file)
 
@@ -449,18 +566,25 @@
   (setup-scrat)
   (setup-postack)
   (setup-tramp)
-  (setup-ocaml)
+  ;(setup-ocaml)
   (setup-ido)
   (setup-hippie)
-  (setup-swoop)
+  ;(setup-auto-complete)
+  ;(setup-swoop)
   (setup-expand-region)
   (setup-misc-modes)
   (setup-smex)
+  ;(setup-swiper)
   (setup-corral)
   (setup-anzu)
   (setup-notes-taking)
-  (setup-smartwin)
-  (set-theme)
+  ;(setup-smartwin)
+  (setup-fuzzy)
+  (setup-git-gutter)
+  (setup-docker)
+  (setup-go)
+  (setup-theme)
+  (setup-auto-indent)
   (set-keys)
   (mode-hooks)
   (mode-mapping)
