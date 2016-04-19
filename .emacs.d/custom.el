@@ -12,10 +12,10 @@
  '(column-number-mode t)
  '(compilation-auto-jump-to-first-error nil)
  '(compilation-search-path (quote ("." nil)))
- '(custom-enabled-themes (quote (hc-zenburn sanityinc-tomorrow-night)))
+ '(custom-enabled-themes (quote (sanityinc-tomorrow-night hc-zenburn)))
  '(custom-safe-themes
    (quote
-    ("dcf229d4673483cb7b38505360824fa56a0d7b52f54edbcdca98cf5059fa1662" "bcc6775934c9adf5f3bd1f428326ce0dcd34d743a92df48c128e6438b815b44f" "f5eb916f6bd4e743206913e6f28051249de8ccfd070eae47b5bde31ee813d55f" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" "82d2cac368ccdec2fcc7573f24c3f79654b78bf133096f9b40c20d97ec1d8016" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" "c3e567dedaa800e869d879c4df8478237d6ea31fd04464086fd674c864fe4d71" "3d5ef3d7ed58c9ad321f05360ad8a6b24585b9c49abcee67bdcbb0fe583a6950" "46fd293ff6e2f6b74a5edf1063c32f2a758ec24a5f63d13b07a20255c074d399" default)))
+    ("708df3cbb25425ccbf077a6e6f014dc3588faba968c90b74097d11177b711ad1" "dcf229d4673483cb7b38505360824fa56a0d7b52f54edbcdca98cf5059fa1662" "bcc6775934c9adf5f3bd1f428326ce0dcd34d743a92df48c128e6438b815b44f" "f5eb916f6bd4e743206913e6f28051249de8ccfd070eae47b5bde31ee813d55f" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" "82d2cac368ccdec2fcc7573f24c3f79654b78bf133096f9b40c20d97ec1d8016" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" "c3e567dedaa800e869d879c4df8478237d6ea31fd04464086fd674c864fe4d71" "3d5ef3d7ed58c9ad321f05360ad8a6b24585b9c49abcee67bdcbb0fe583a6950" "46fd293ff6e2f6b74a5edf1063c32f2a758ec24a5f63d13b07a20255c074d399" default)))
  '(deft-auto-save-interval 4.0)
  '(desktop-path (quote ("." "~/.emacs.d")))
  '(exec-path
@@ -50,6 +50,7 @@
      (ruby-compilation-executable . "ruby1.9")
      (ruby-compilation-executable . "rbx")
      (ruby-compilation-executable . "jruby"))))
+ '(scroll-margin 3)
  '(sourcepair-header-extensions
    (quote
     (".h" ".H" ".hpp" ".HPP" ".Hpp" ".hh" ".HH" ".hxx" ".HXX" ".mli")))
@@ -82,7 +83,8 @@
      (360 . "#b5bd68"))))
  '(vc-annotate-very-old-color nil)
  '(vc-handled-backends nil)
- '(web-mode-enable-current-element-highlight t))
+ '(web-mode-enable-current-element-highlight t)
+ '(whole-line-or-region-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

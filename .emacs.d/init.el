@@ -9,30 +9,32 @@
 
 
 (defun setup-helm ()
+  (use-package helm
+    :config
+    (helm-mode 1)
+    ;; The default "C-x c" is quite close to "C-x C-c", which quits Emacs.
+    ;; Changed to "C-c h". Note: We must set "C-c h" globally, because we
+    ;; cannot change `helm-command-prefix-key' once `helm-config' is loaded.
 
-  (require 'helm-config)
-  (helm-mode 1)
-  ;; The default "C-x c" is quite close to "C-x C-c", which quits Emacs.
-  ;; Changed to "C-c h". Note: We must set "C-c h" globally, because we
-  ;; cannot change `helm-command-prefix-key' once `helm-config' is loaded.
-  (global-set-key (kbd "C-c h") 'helm-command-prefix)
-  (global-unset-key (kbd "C-x c"))
+    (global-set-key (kbd "C-c h") 'helm-command-prefix)
+    (global-unset-key (kbd "C-x c"))
 
-  (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
-  (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
-  (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
+    (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
+    (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
+    (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
+    (global-set-key (kbd "M-x") 'helm-M-x)
+    (global-set-key (kbd "C-x C-f") 'helm-find-files)
 
-  (when (executable-find "curl")
-    (setq helm-google-suggest-use-curl-p t))
+    (when (executable-find "curl")
+      (setq helm-google-suggest-use-curl-p t))
 
-  (setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
-        helm-buffers-fuzzy-matching           t ; fuzzy matching buffer names when non--nil
-        helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
-        helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
-        helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
-        helm-ff-file-name-history-use-recentf t)
-
-
+    (setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
+          helm-buffers-fuzzy-matching           t ; fuzzy matching buffer names when non--nil
+          helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
+          helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
+          helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
+          helm-ff-file-name-history-use-recentf t)
+    )
   )
 
 (defun system-setup ()
@@ -51,6 +53,7 @@
 
 
 (defun global-settings ()
+  (setq ring-bell-function 'ignore)
   (setq-default indent-tabs-mode nil)
   (setq tab-width 2)
   (line-number-mode 1)
@@ -202,6 +205,8 @@
   )
 
 (defun set-keys ()
+  ;; override Macbook pro annoying tilde placement
+  (global-set-key "§" "~")
   (global-unset-key "\C-j")
   (global-set-key "\C-j" 'goto-line)
   (global-set-key "\C-x\C-q" 'my-toggle-read-only)
@@ -295,7 +300,7 @@
   (use-package multiple-cursors)
   (use-package sourcepair)
   (use-package hl-tags-mode)
-
+  (use-package whole-line-or-region-kill-region)
   )
 
 (defun setup-ocaml ()
@@ -372,7 +377,7 @@
   )
 
 (defun setup-auto-complete ()
-  (use-package auto-complete-config
+  (use-package auto-complete
     :config
     (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
     (ac-config-default)
@@ -523,11 +528,21 @@
 
 
 (defun setup-go ()
-  (use-package go
+  (use-package go-mode
     :config
     (exec-path-from-shell-initialize)
     (exec-path-from-shell-copy-env "GOPATH")
+    (setq gofmt-command "goimports")
+    (add-hook 'before-save-hook 'gofmt-before-save)
+    ;(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
+    :bind
+    ("M-." . godef-jump)
     )
+
+  (use-package golint
+              )
+  ;; (use-package go-autocomplete
+  ;;   )
   )
 
 (defun setup-auto-indent ()
@@ -557,11 +572,39 @@
   (ad-activate 'yank)
 
   )
+
+(defun setup-flycheck ()
+  (use-package global-flycheck-mode
+    )
+  )
+
+(defun setup-hilight ()
+  (use-package highlight-symbol
+    :bind
+    (("C-<f3>" . highlight-symbol)
+     ("<f3>" . highlight-symbol-next)
+     ("S-<f3>" . highlight-symbol-prev)
+     ("M-<f3>" . highlight-symbol-query-replace))
+    )
+  (use-package hilight-sexp
+    :config
+    (add-hook 'emacs-lisp-mode-hook 'highlight-sexp-mode)
+    (add-hook 'go-mode-hook 'highlight-sexp-mode)
+    )
+  )
+
+(defun setup-avy ()
+  (use-package avy
+    :ensure t
+    :bind (("C-M-s" . avy-goto-word-1)
+    ))
+  )
+
 (defun my-after-init-hook ()
   (load custom-file)
 
   ;; do things after package initialization
-  ;(setup-helm)
+  ;(setup-smex)
   (setup-igrep)
   (setup-scrat)
   (setup-postack)
@@ -573,7 +616,6 @@
   ;(setup-swoop)
   (setup-expand-region)
   (setup-misc-modes)
-  (setup-smex)
   ;(setup-swiper)
   (setup-corral)
   (setup-anzu)
@@ -585,6 +627,9 @@
   (setup-go)
   (setup-theme)
   (setup-auto-indent)
+  (setup-hilight)
+  (setup-avy)
+  ;;(setup-helm)
   (set-keys)
   (mode-hooks)
   (mode-mapping)
