@@ -1,6 +1,15 @@
+(require 'package)
+(setq package-enable-at-startup nil)
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa"))
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/melpa"))
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp/Emacs-wgrep-2.1.10"))
+(package-initialize)
 
+;; Bootstrap `use-package'
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
 
 (defvar macosx-p (string-match "darwin" (symbol-name system-type)))
 (defvar windows-p (string-match "windows-nt" (symbol-name system-type)))
@@ -46,8 +55,8 @@
                                         ;'(font . "-apple-Bitstream_Vera_Sans_Mono-medium-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
      '(font . "-*-Hack-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
     )
-  (set-frame-height (selected-frame) 68)
-  (set-frame-width (selected-frame) 91)
+                                        ;(set-frame-height (selected-frame) 68)
+                                        ;(set-frame-width (selected-frame) 91)
 
   )
 
@@ -55,7 +64,7 @@
 (defun global-settings ()
   (setq ring-bell-function 'ignore)
   (setq-default indent-tabs-mode nil)
-  (setq tab-width 2)
+  (setq tab-width 4)
   (line-number-mode 1)
   (setq frame-title-format "%b - emacs")
   (column-number-mode 1)
@@ -78,30 +87,33 @@
   (defun my-cc-mode-hook ()
     (my-default-mode-hook)
     (setq c-default-style "k&r"
-          c-basic-offset 2)
+          c-basic-offset 4)
     (setq show-trailing-whitespace t)
     (c-toggle-hungry-state)
-    (c-toggle-auto-state -1))
+    (c-toggle-auto-state -1)
+    (cscope-setup)
+    ;(superword-mode 1)
+    )
 
   (defun my-js-mode-hook ()
     (my-default-mode-hook)
     (c-toggle-hungry-state)
     (c-toggle-auto-state -1)
+    (setq
+     sh-indentation 2)
     )
 
 
   (defun my-sh-mode-hook ()
     (my-default-mode-hook)
     (setq
-     sh-basic-offset 2
-     sh-indentation 2)
+     sh-basic-offset 4
+     sh-indentation 4)
     )
 
 
   (defun my-ruby-mode-hook ()
     (my-default-mode-hook)
-    (setq
-     indent-tabs-mode nil)
     (c-toggle-hungry-state)
     )
 
@@ -114,19 +126,24 @@
     (setq web-mode-script-padding 1)
     (setq web-mode-block-padding 0)
     (setq web-mode-comment-style 2)
-    (hl-tags-mode 1)
+    ;(set-face-attribute 'web-mode-current-element-highlight-face t :background "LightYellow2")
+    (set-face-attribute 'web-mode-current-column-highlight-face t :background "LightYellow2")
+    ;(hl-tags-mode 1)
     )
 
   (add-hook 'emacs-lisp-mode-hook 'my-default-mode-hook)
   (add-hook 'lisp-mode-hook 'my-default-mode-hook)
+
   (add-hook 'c-mode-hook 'my-cc-mode-hook)
-  (add-hook 'cc-mode-hook 'my-cc-mode-hook)
+  ;(modify-syntax-entry ?_ "w" c-mode-syntax-table)
+
   (add-hook 'c++-mode-hook 'my-cc-mode-hook)
+  ;(modify-syntax-entry ?_ "w" c++-mode-syntax-table)
+
   (add-hook 'makefile-mode-hook 'my-default-mode-hook)
   (add-hook 'mutt-mode-hook 'my-default-mode-hook)
   (add-hook 'perl-mode-hook 'my-default-mode-hook)
   (add-hook 'cperl-mode-hook 'my-default-mode-hook)
-  (add-hook 'c++-c-mode-hook 'my-cc-mode-hook)
   (add-hook 'java-mode-hook 'my-cc-mode-hook)
   (add-hook 'tex-mode-hook 'my-default-mode-hook)
   (add-hook 'latex-mode-hook 'my-default-mode-hook)
@@ -175,8 +192,6 @@
   (add-to-mode-list "\\.sh$" 'shell-script-mode)
   (add-to-mode-list "\\.lua$" 'lua-mode)
   (add-to-mode-list "\\.ws$" 'lua-mode)
-  (add-to-mode-list "\\.mpc$" 'lua-mode)  ; does good indentation job
-  (add-to-mode-list "\\.mpw$" 'lua-mode)  ; does good indentation job
   (add-to-mode-list "\\.php$" 'php-mode)
   (add-to-mode-list "\\.css$" 'css-mode)
   (add-to-mode-list "\\.m$" 'objc-mode)
@@ -190,6 +205,7 @@
   (add-to-mode-list "\\.yml$" 'yaml-mode)
   (add-to-mode-list "\\.yaml$" 'yaml-mode)
   (add-to-mode-list "\\.md$" 'markdown-mode)
+  (add-to-mode-list "\\.js$" 'web-mode)
 
   )
 
@@ -205,8 +221,12 @@
   )
 
 (defun set-keys ()
-  ;; override Macbook pro annoying tilde placement
-  (global-set-key "§" "~")
+  ;; override Macbook pro annoying backtick/tilde placement
+  (global-set-key "§" "`")
+  (global-set-key "±" "~")
+  (global-set-key "\C-x§" 'next-error)
+  (global-set-key (kbd "C-x k") 'kill-this-buffer)
+
   (global-unset-key "\C-j")
   (global-set-key "\C-j" 'goto-line)
   (global-set-key "\C-x\C-q" 'my-toggle-read-only)
@@ -224,6 +244,8 @@
   (fset 'copy-this-line [?\C-a ?\C-  down ?\M-w])
 
   (global-set-key "\C-cy" 'copy-this-line)
+  (global-set-key "\M-W" 'copy-word)
+
   (global-set-key "\e0" 'delete-window)
   (global-set-key "\C-cr" 'revert-buffer-dont-ask)
   (global-set-key "\C-cc" 'goto-last-change)
@@ -261,9 +283,13 @@
   (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
   (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 
-  (global-set-key (kbd "C-x g") 'magit-status)
   (global-set-key (kbd "C-`") 'switch-to-previous-buffer)
-  (global-set-key (kbd "C-x C-g") 'ack)
+  (global-set-key (kbd "C-x g") 'ag)
+  (global-set-key (kbd "C-x C-g") 'ag)
+  (global-set-key (kbd "C-x m") 'magit-status)
+
+  (global-set-key (kbd "C-+") 'align)
+  (global-set-key (kbd "C-c C-o") 'org-open-at-point)
   )
 
 (defun setup-scrat ()
@@ -276,7 +302,7 @@
     (defun joty () (interactive)
            (scratch "*joty*" 'text-mode))
     )
- )
+  )
 
 (defun setup-postack ()
   (use-package postack
@@ -293,14 +319,47 @@
     )
   )
 
+(defun setup-which-key ()
+  (use-package which-key
+     :config
+     (which-key-mode)
+     )
+
+  )
+
 (defun setup-misc-modes ()
+  (use-package yaml-mode)
   (use-package goto-last-change)
   (use-package magit)
+  (use-package web-mode)
   (use-package nginx-mode)
-  (use-package multiple-cursors)
+  ;(use-package multiple-cursors)
   (use-package sourcepair)
   (use-package hl-tags-mode)
-  (use-package whole-line-or-region-kill-region)
+  ;(use-package whole-line-or-region)
+  (use-package grep-buffers)
+  (use-package google-this
+    :config
+    (google-this-mode 1)
+    )
+   (use-package protobuf-mode
+     :mode "\\.proto\\'"
+     )
+
+  (use-package lua-mode
+    :bind
+    ("C-c C-b" . lua-goto-matching-block)
+    )
+
+  ;(use-package modeline-git-branch)
+  (use-package ibuffer
+    :bind
+    ("C-x C-b" . ibuffer)
+    )
+
+  (use-package wgrep-ag)
+  (use-package iedit)
+  (show-paren-mode 1)
   )
 
 (defun setup-ocaml ()
@@ -345,10 +404,12 @@
 
 (defun setup-theme ()
   (use-package color-theme
+    :ensure t
     :config
     (color-theme-initialize)
+    (load-theme 'brin)
+    )
   )
-)
 
 (defun setup-ido ()
   (use-package ido
@@ -365,8 +426,8 @@
   (use-package hippie-exp
     :config
     (setq hippie-expand-try-functions-list
-          '(try-expand-dabbrev
-            try-expand-all-abbrevs
+          '(;;try-expand-dabbrev
+            ;;try-expand-all-abbrevs
             try-expand-dabbrev-all-buffers
             try-expand-dabbrev-from-kill
             try-expand-list
@@ -424,7 +485,7 @@
     :bind
     ("M-x" . smex)
     ("M-X" . smex-major-mode-commands)
-  ;; This is your old M-x.
+    ;; This is your old M-x.
     ( "C-c C-c M-x" . execute-extended-command)
     )
   )
@@ -459,6 +520,7 @@
     (global-anzu-mode 1)
     :bind
     ("M-%" . anzu-query-replace)
+    ("C-%" . anzu-query-replace-at-cursor)
     ("C-M-%" . anzu-query-replace-regexp)
     )
   )
@@ -502,7 +564,7 @@
 
 (defun setup-docker ()
   ;; from here http://www.emacswiki.org/emacs/TrampAndDocker
-;; Open files in Docker containers like so: /docker:drunk_bardeen:/etc/passwd
+  ;; Open files in Docker containers like so: /docker:drunk_bardeen:/etc/passwd
   (push
    (cons
     "docker"
@@ -533,16 +595,30 @@
     (exec-path-from-shell-initialize)
     (exec-path-from-shell-copy-env "GOPATH")
     (setq gofmt-command "goimports")
-    (add-hook 'before-save-hook 'gofmt-before-save)
-    ;(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
+    (defun my-go-mode-hook()
+      (add-hook 'before-save-hook 'gofmt-before-save)
+                                        ; Customize compile command to run go build
+      (if (not (string-match "go" compile-command))
+          (set (make-local-variable 'compile-command)
+               "go build -v && go test -v && go vet")))
+    (add-hook 'go-mode-hook 'my-go-mode-hook)
+
+    ;;(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
     :bind
     ("M-." . godef-jump)
+    ("C-M-." . pop-tag-mark)
     )
 
-  (use-package golint
-              )
-  ;; (use-package go-autocomplete
-  ;;   )
+   (use-package golint
+     )
+   ;; (use-package go-autocomplete
+   ;;   :config
+   ;;   (auto-complete-mode 1)
+   ;;   (add-hook 'go-mode-hook 'auto-complete-for-go)
+   ;;   (with-eval-after-load 'go-mode
+   ;;     (require 'go-autocomplete))
+   ;;   )
+
   )
 
 (defun setup-auto-indent ()
@@ -597,39 +673,112 @@
   (use-package avy
     :ensure t
     :bind (("C-M-s" . avy-goto-word-1)
-    ))
+           ))
+  )
+
+(defun setup-cscope ()
+  (use-package xcscope
+    :ensure t
+    :config
+    (cscope-setup)
+    :bind (:map cscope-minor-mode-keymap
+                ("M-." . cscope-find-global-definition-no-prompting))
+    )
+  )
+
+(defun setup-undo-tree ()
+  (use-package undo-tree
+    :ensure t
+    :config
+    (global-undo-tree-mode)
+    )
+  )
+
+;; using http://stackoverflow.com/a/40789413
+(defun setup-smart-compile ()
+  (use-package smart-compile
+    :config
+    (setq compilation-last-buffer nil)
+    (defun compile-again (ARG)
+      "Run the same compile as the last time.
+
+With a prefix argument or no last time, this acts like M-x compile,
+and you can reconfigure the compile args."
+      (interactive "p")
+      ;; the following two lines create bug: split a new window every time
+      ;; (if (not (get-buffer-window "*compilation*"))
+      ;;      (split-window-below))
+      (if (and (eq ARG 1) compilation-last-buffer)
+          (recompile)
+        (call-interactively 'smart-compile)))
+    ;; create a new small frame to show the compilation info
+    ;; will be auto closed if no error
+    (setq special-display-buffer-names
+          `(("*compilation*" . ((name . "*compilation*")
+                                ,@default-frame-alist
+                                (left . 740) ;; should be dynamically caluclated using frame-text-width
+                                (top . 0)
+                                (height . 80)
+                                ))))
+    (setq compilation-finish-functions
+          (lambda (buf str)
+            (if (null (string-match ".*exited abnormally.*" str))
+                ;;no errors, make the compilation window go away in a few seconds
+                (progn
+                  (run-at-time
+                   "1 sec" nil 'delete-windows-on
+                   (get-buffer-create "*compilation*"))
+                  (message "No Compilation Errors!")))))
+
+    :bind (("C-x C-m" . compile-again))
+  )
+)
+
+(defun setup-markdown ()
+  (use-package markdown-mode
+    :ensure t
+    :commands (markdown-mode gfm-mode)
+    :mode (("README\\.md\\'" . gfm-mode)
+           ("\\.md\\'" . markdown-mode)
+           ("\\.markdown\\'" . markdown-mode))
+    :init (setq markdown-command "multimarkdown")
+    )
   )
 
 (defun my-after-init-hook ()
   (load custom-file)
 
   ;; do things after package initialization
-  ;(setup-smex)
+                                        ;(setup-smex)
   (setup-igrep)
   (setup-scrat)
   (setup-postack)
   (setup-tramp)
-  ;(setup-ocaml)
+                                        ;(setup-ocaml)
   (setup-ido)
-  (setup-hippie)
-  ;(setup-auto-complete)
-  ;(setup-swoop)
+  ;(setup-hippie)
+                                        ;(setup-auto-complete)
+                                        ;(setup-swoop)
   (setup-expand-region)
   (setup-misc-modes)
   ;(setup-swiper)
   (setup-corral)
-  (setup-anzu)
-  (setup-notes-taking)
-  ;(setup-smartwin)
+                                        ;(setup-anzu)
+                                        ;(setup-notes-taking)
+                                        ;(setup-smartwin)
   (setup-fuzzy)
   (setup-git-gutter)
-  (setup-docker)
+                                        ;(setup-docker)
   (setup-go)
   (setup-theme)
   (setup-auto-indent)
-  (setup-hilight)
+                                        ;(setup-hilight)
   (setup-avy)
-  ;;(setup-helm)
+  (setup-cscope)
+  (setup-undo-tree)
+  (setup-smart-compile)
+  (setup-markdown)
+                                        ;(setup-helm)
   (set-keys)
   (mode-hooks)
   (mode-mapping)
