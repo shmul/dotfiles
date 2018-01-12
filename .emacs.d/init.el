@@ -73,7 +73,7 @@
   (global-font-lock-mode t)
   (which-function-mode)
   (mouse-avoidance-mode 'cat-and-mouse)
-  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+  (add-hook 'before-save-hook 'delete-trailing-whitespace t)
   (setq confirm-kill-emacs 'y-or-n-p)
   (setq tab-always-indent 'complete)
   )
@@ -94,15 +94,6 @@
     (cscope-setup)
     ;(superword-mode 1)
     )
-
-  (defun my-js-mode-hook ()
-    (my-default-mode-hook)
-    (c-toggle-hungry-state)
-    (c-toggle-auto-state -1)
-    (setq
-     sh-indentation 2)
-    )
-
 
   (defun my-sh-mode-hook ()
     (my-default-mode-hook)
@@ -128,7 +119,8 @@
     (setq web-mode-comment-style 2)
     ;(set-face-attribute 'web-mode-current-element-highlight-face t :background "LightYellow2")
     (set-face-attribute 'web-mode-current-column-highlight-face t :background "LightYellow2")
-    ;(hl-tags-mode 1)
+                                        ;(hl-tags-mode 1)
+    (rainbow-mode 1)
     )
 
   (add-hook 'emacs-lisp-mode-hook 'my-default-mode-hook)
@@ -156,7 +148,6 @@
   (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)
 
   (add-hook 'rails-modee-hook 'my-default-mode-hook)
-  (add-hook 'yaml-mode-hook 'my-js-mode-hook)
   (add-hook 'sh-mode-hook 'my-sh-mode-hook)
   (add-hook 'objc-mode-hook 'my-default-mode-hook)
   (add-hook 'web-mode-hook  'my-web-mode-hook)
@@ -205,7 +196,7 @@
   (add-to-mode-list "\\.yml$" 'yaml-mode)
   (add-to-mode-list "\\.yaml$" 'yaml-mode)
   (add-to-mode-list "\\.md$" 'markdown-mode)
-  (add-to-mode-list "\\.js$" 'web-mode)
+  (add-to-mode-list "\\.js$" 'js2-mode)
 
   )
 
@@ -290,6 +281,9 @@
 
   (global-set-key (kbd "C-+") 'align)
   (global-set-key (kbd "C-c C-o") 'org-open-at-point)
+
+  (global-set-key (kbd "C-M-c") 'capitalize-first)
+
   )
 
 (defun setup-scrat ()
@@ -327,11 +321,39 @@
 
   )
 
+(defun setup-web-mode ()
+  (use-package web-mode)
+  (use-package web-beautify
+    :config
+    (setq web-beautify-js-program "/opt/local/bin/js-beautify")
+    (setq web-beautify-html-program "/opt/local/bin/html-beautify")
+    )
+  (use-package js-auto-beautify)
+  (use-package js2-mode
+    :config
+    (add-hook 'js2-mode-hook 'js-auto-beautify-mode)
+    (setq js2-strict-trailing-comma-warning nil)
+    ;; (defun my-js-mode-hook()
+    ;;   (add-hook 'before-save-hook 'web-beautify-mode t))
+    ;; (add-hook 'js2-mode-hook 'my-js-mode-hook)
+    )
+  )
+
+(defun setup-mode-line ()
+  (use-package smart-mode-line
+    :ensure t
+    :config
+    (sml/setup)
+    (sml/apply-theme 'automatic)
+
+    )
+  )
+
 (defun setup-misc-modes ()
   (use-package yaml-mode)
   (use-package goto-last-change)
   (use-package magit)
-  (use-package web-mode)
+  (use-package rainbow-mode)
   (use-package nginx-mode)
   ;(use-package multiple-cursors)
   (use-package sourcepair)
@@ -360,6 +382,15 @@
   (use-package wgrep-ag)
   (use-package iedit)
   (show-paren-mode 1)
+
+  (use-package fiplr
+    :config
+    (setq fiplr-ignored-globs '((directories (".git" ".svn"))
+                                (files ("*.jpg" "*.png" "*.zip" "*.txt" "*.log" "*.orig" "*~"))))
+    :bind
+    ("C-x f" . fiplr-find-file)
+
+    )
   )
 
 (defun setup-ocaml ()
@@ -433,7 +464,8 @@
             try-expand-list
             try-expand-line
             try-complete-file-name-partially
-            try-complete-file-name))
+            try-complete-file-name
+            ))
     )
   )
 
@@ -472,7 +504,7 @@
   )
 
 (defun setup-expand-region ()
-  (use-package expand-region
+  (use-package expand-region-
     :bind
     ("C-=" . er/expand-region)
     )
@@ -594,13 +626,14 @@
     :config
     (exec-path-from-shell-initialize)
     (exec-path-from-shell-copy-env "GOPATH")
+    (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
     (setq gofmt-command "goimports")
     (defun my-go-mode-hook()
-      (add-hook 'before-save-hook 'gofmt-before-save)
+      (add-hook 'before-save-hook 'gofmt-before-save t)
                                         ; Customize compile command to run go build
       (if (not (string-match "go" compile-command))
           (set (make-local-variable 'compile-command)
-               "go build -v && go test -v && go vet")))
+               "gb build")))
     (add-hook 'go-mode-hook 'my-go-mode-hook)
 
     ;;(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
@@ -609,7 +642,12 @@
     ("C-M-." . pop-tag-mark)
     )
 
-   (use-package golint
+  (use-package golint
+    )
+
+   (use-package go-eldoc
+     :config
+     (add-hook 'go-mode-hook 'go-eldoc-setup)
      )
    ;; (use-package go-autocomplete
    ;;   :config
@@ -756,7 +794,7 @@ and you can reconfigure the compile args."
   (setup-tramp)
                                         ;(setup-ocaml)
   (setup-ido)
-  ;(setup-hippie)
+  (setup-hippie)
                                         ;(setup-auto-complete)
                                         ;(setup-swoop)
   (setup-expand-region)
@@ -767,7 +805,7 @@ and you can reconfigure the compile args."
                                         ;(setup-notes-taking)
                                         ;(setup-smartwin)
   (setup-fuzzy)
-  (setup-git-gutter)
+  ;(setup-git-gutter)
                                         ;(setup-docker)
   (setup-go)
   (setup-theme)
@@ -778,6 +816,8 @@ and you can reconfigure the compile args."
   (setup-undo-tree)
   (setup-smart-compile)
   (setup-markdown)
+  (setup-web-mode)
+  (setup-mode-line)
                                         ;(setup-helm)
   (set-keys)
   (mode-hooks)

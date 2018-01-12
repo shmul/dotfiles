@@ -640,3 +640,29 @@ shown, then it'll be hidden."
   (copy-thing 'backward-word 'forward-word arg)
   ;;(paste-to-mark arg)
   )
+
+;; from https://emacs.stackexchange.com/a/28597
+(defun capitalize-first (s)
+  (if (> (length s) 0)
+      (concat (upcase (substring s 0 1)) (downcase (substring s 1)))
+    nil))
+
+
+;; from https://stackoverflow.com/a/18814469
+(defun copy-buffer-file-name-as-kill (choice)
+  "Copy the buffer-file-name to the kill-ring"
+  (interactive "cCopy Buffer Name (f) Full, (d) Directory, (n) Name")
+  (let ((new-kill-string)
+        (name (if (eq major-mode 'dired-mode)
+                  (dired-get-filename)
+                (or (buffer-file-name) ""))))
+    (cond ((eq choice ?f)
+           (setq new-kill-string name))
+          ((eq choice ?d)
+           (setq new-kill-string (file-name-directory name)))
+          ((eq choice ?n)
+           (setq new-kill-string (file-name-nondirectory name)))
+          (t (message "Quit")))
+    (when new-kill-string
+      (message "%s copied" new-kill-string)
+      (kill-new new-kill-string))))

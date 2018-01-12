@@ -6,6 +6,7 @@
  '(ack-command "/opt/local/bin/ack ")
  '(ag-executable "/opt/local/bin/ag")
  '(ag-group-matches nil)
+ '(ag-ignore-list (quote ("*.map" "*min.css" "*min.js")))
  '(ansi-color-faces-vector
    [default bold shadow italic underline bold bold-italic bold])
  '(ansi-color-names-vector
@@ -19,12 +20,10 @@
  '(custom-enabled-themes (quote (sanityinc-tomorrow-blue)))
  '(custom-safe-themes
    (quote
-    ("0c29db826418061b40564e3351194a3d4a125d182c6ee5178c237a7364f0ff12" "fa80190f587f2fab395b878d78d4db0aab0fac9844e1345d55f2f7558eff221f" "9b59e147dbbde5e638ea1cde5ec0a358d5f269d27bd2b893a0947c4a867e14c1" "b34636117b62837b3c0c149260dfebe12c5dad3d1177a758bb41c4b15259ed7e" "9e147cee63e1a2a6b16021e0645bc66c633c42b849e78b8e295df4b7fe55c56a" "bb08c73af94ee74453c90422485b29e5643b73b05e8de029a6909af6a3fb3f58" "01ce486c3a7c8b37cf13f8c95ca4bb3c11413228b35676025fdf239e77019ea1" "19ba41b6dc0b5dd34e1b8628ad7ae47deb19f968fe8c31853d64ea8c4df252b8" "0c311fb22e6197daba9123f43da98f273d2bfaeeaeb653007ad1ee77f0003037" "708df3cbb25425ccbf077a6e6f014dc3588faba968c90b74097d11177b711ad1" "dcf229d4673483cb7b38505360824fa56a0d7b52f54edbcdca98cf5059fa1662" "bcc6775934c9adf5f3bd1f428326ce0dcd34d743a92df48c128e6438b815b44f" "f5eb916f6bd4e743206913e6f28051249de8ccfd070eae47b5bde31ee813d55f" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" "82d2cac368ccdec2fcc7573f24c3f79654b78bf133096f9b40c20d97ec1d8016" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" "c3e567dedaa800e869d879c4df8478237d6ea31fd04464086fd674c864fe4d71" "3d5ef3d7ed58c9ad321f05360ad8a6b24585b9c49abcee67bdcbb0fe583a6950" "46fd293ff6e2f6b74a5edf1063c32f2a758ec24a5f63d13b07a20255c074d399" default)))
+    ("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "84d2f9eeb3f82d619ca4bfffe5f157282f4779732f48a5ac1484d94d5ff5b279" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "0c29db826418061b40564e3351194a3d4a125d182c6ee5178c237a7364f0ff12" "fa80190f587f2fab395b878d78d4db0aab0fac9844e1345d55f2f7558eff221f" "9b59e147dbbde5e638ea1cde5ec0a358d5f269d27bd2b893a0947c4a867e14c1" "b34636117b62837b3c0c149260dfebe12c5dad3d1177a758bb41c4b15259ed7e" "9e147cee63e1a2a6b16021e0645bc66c633c42b849e78b8e295df4b7fe55c56a" "bb08c73af94ee74453c90422485b29e5643b73b05e8de029a6909af6a3fb3f58" "01ce486c3a7c8b37cf13f8c95ca4bb3c11413228b35676025fdf239e77019ea1" "19ba41b6dc0b5dd34e1b8628ad7ae47deb19f968fe8c31853d64ea8c4df252b8" "0c311fb22e6197daba9123f43da98f273d2bfaeeaeb653007ad1ee77f0003037" "708df3cbb25425ccbf077a6e6f014dc3588faba968c90b74097d11177b711ad1" "dcf229d4673483cb7b38505360824fa56a0d7b52f54edbcdca98cf5059fa1662" "bcc6775934c9adf5f3bd1f428326ce0dcd34d743a92df48c128e6438b815b44f" "f5eb916f6bd4e743206913e6f28051249de8ccfd070eae47b5bde31ee813d55f" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" "82d2cac368ccdec2fcc7573f24c3f79654b78bf133096f9b40c20d97ec1d8016" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" "c3e567dedaa800e869d879c4df8478237d6ea31fd04464086fd674c864fe4d71" "3d5ef3d7ed58c9ad321f05360ad8a6b24585b9c49abcee67bdcbb0fe583a6950" "46fd293ff6e2f6b74a5edf1063c32f2a758ec24a5f63d13b07a20255c074d399" default)))
+ '(dabbrev-case-fold-search nil)
  '(deft-auto-save-interval 4.0)
  '(desktop-path (quote ("." "~/.emacs.d")))
- '(exec-path
-   (quote
-    ("/usr/bin" "/bin" "/usr/sbin" "/sbin" "/Applications/Emacs.app/Contents/MacOS/bin" "/opt/local/bin")))
  '(exec-path-from-shell-arguments (quote ("-l" "-i")))
  '(fci-rule-color "#373b41")
  '(font-lock-verbose nil)
@@ -53,7 +52,7 @@
      ("melpa" . "http://melpa.milkbox.net/packages/"))))
  '(package-selected-packages
    (quote
-    (ivy markdown-mode markdown-preview-mode auto-complete which-key exec-path-from-shell go-mode iedit goto-last-change origami undo-tree melancholy-theme lua-mode whole-line-or-region xcscope web-mode vdiff vagrant-tramp vagrant use-package underwater-theme sublime-themes subatomic-theme reykjavik-theme noctilux-theme nginx-mode multiple-cursors multi-web-mode metalheart-theme magit igrep helm google-this git-gutter fuzzy expand-region corral color-theme-sanityinc-tomorrow color-theme avy anzu ag ack)))
+    (fiplr golint rainbow-mode go-eldoc smart-mode-line smart-mode-line-powerline-theme neotree js2-mode web-beautify ivy markdown-mode markdown-preview-mode auto-complete which-key exec-path-from-shell go-mode iedit goto-last-change origami undo-tree melancholy-theme lua-mode whole-line-or-region xcscope web-mode vdiff vagrant-tramp vagrant use-package underwater-theme sublime-themes subatomic-theme reykjavik-theme noctilux-theme nginx-mode multiple-cursors multi-web-mode metalheart-theme magit igrep helm google-this git-gutter fuzzy expand-region corral color-theme-sanityinc-tomorrow color-theme avy anzu ag ack)))
  '(safe-local-variable-values
    (quote
     ((encoding . binary)
@@ -63,6 +62,18 @@
      (ruby-compilation-executable . "rbx")
      (ruby-compilation-executable . "jruby"))))
  '(scroll-margin 3)
+ '(sml/replacer-regexp-list
+   (quote
+    (("^~/org/" ":Org:")
+     ("^~/\\.emacs\\.d/elpa/" ":ELPA:")
+     ("^~/\\.emacs\\.d/" ":ED:")
+     ("^/sudo:.*:" ":SU:")
+     ("^~/Documents/" ":Doc:")
+     ("^~/Dropbox/" ":DB:")
+     ("^:\\([^:]*\\):Documento?s/" ":\\1/Doc:")
+     ("^~/workspace/catod.git/" ":catod:")
+     ("^~/workspace/hub.git/" ":hub:")
+     ("^~/[Gg]it\\([Hh]ub\\|\\)-?[Pp]rojects/" ":Git:"))))
  '(sourcepair-header-extensions
    (quote
     (".h" ".H" ".hpp" ".HPP" ".Hpp" ".hh" ".HH" ".hxx" ".HXX" ".mli")))
