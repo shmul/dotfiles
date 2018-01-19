@@ -666,3 +666,7 @@ shown, then it'll be hidden."
     (when new-kill-string
       (message "%s copied" new-kill-string)
       (kill-new new-kill-string))))
+
+;; indents a script element
+(fset 'shmul/indent-script-element
+   (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ("</scrip\234" 0 "%d")) arg)))

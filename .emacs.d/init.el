@@ -1,3 +1,7 @@
+;; Local Variables:
+;; flycheck-disabled-checkers: (emacs-lisp-checkdoc)
+;; End:
+
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
@@ -245,7 +249,6 @@
 
   (global-set-key (kbd "C-M-<down>") 'forward-list)
   (global-set-key (kbd "C-M-<up>") 'backward-list)
-  (global-set-key (kbd "M-<return>") 'hippie-expand)
   (global-set-key (kbd "C-M-<right>") 'jump-to-white)
   (global-set-key (kbd "C-<right>") 'forward-word)
   (global-set-key (kbd "C-<left>") 'backward-word)
@@ -332,6 +335,7 @@
   (use-package js2-mode
     :config
     (add-hook 'js2-mode-hook 'js-auto-beautify-mode)
+    (add-hook 'js2-mode-hook 'ac-js2-mode)
     (setq js2-strict-trailing-comma-warning nil)
     ;; (defun my-js-mode-hook()
     ;;   (add-hook 'before-save-hook 'web-beautify-mode t))
@@ -347,6 +351,156 @@
     (sml/apply-theme 'automatic)
 
     )
+  )
+
+
+(defun setup-function-args ()
+  (use-package function-args
+    :config
+    (fa-config-default)
+    (set-default 'semantic-case-fold t)
+    )
+  )
+
+(defun setup-company ()
+  ;; based on https://gist.githubusercontent.com/rswgnu/85ca5c69bb26551f3f27500855893dbe/raw/0ceb8e34f27c14914a1e9547f4c9dd6142315b27/rsw-company-config.el
+  ;; Company function modified by RSW to prevent error when completing
+  ;; in the minibuffer (uses standard Emacs completion instead since
+  ;; company does not support minibuffer completion).
+  (defun company-complete ()
+    "Insert the common part of all candidates or the current selection.
+The first time this is called, the common part is inserted, the second
+time, or when the selection has been changed, the selected candidate is
+inserted."
+    (interactive)
+    (if company-mode
+        (when (company-manual-begin)
+          (if (or company-selection-changed
+                  (eq last-command 'company-complete-common))
+              (call-interactively 'company-complete-selection)
+            (call-interactively 'company-complete-common)
+            (setq this-command 'company-complete-common)))
+      (completion-at-point)))
+
+  ;; New function by RSW
+  (defun company-quit ()
+    "Insert any selected completion and quit completing."
+    (interactive)
+    (when (and company-selection-changed company--manual-action
+               (boundp 'company-tng--overlay) company-tng--overlay)
+      (company--insert-candidate
+       (nth company-selection company-candidates)))
+    (company-cancel))
+
+  ;; New function by RSW
+  (defun company-select-first ()
+    "Select first company completion candidate even if not visible."
+    (interactive)
+    (when (company-manual-begin)
+      (company-set-selection 0)))
+
+  ;; New function by RSW
+  (defun company-select-last ()
+    "Select last company completion candidate even if not visible."
+    (interactive)
+    (when (company-manual-begin)
+      (company-set-selection (1- company-candidates-length))))
+
+  ;; New function by RSW
+  (defun company-select-first-visible ()
+    "Select first visible company completion candidate."
+    (interactive)
+    (when (company-manual-begin)
+      (company-set-selection 0)))
+
+  ;; New function by RSW
+  (defun company-select-last-visible ()
+    "Select last visible company completion candidate."
+    (interactive)
+    (when (company-manual-begin)
+      (company-set-selection (1- company-candidates-length))))
+
+  (use-package company
+    :ensure t
+    :defer t
+    :config
+    (global-company-mode 1)
+    (setq company-selection-wrap-around t
+          company-idle-delay            nil
+          company-minimum-prefix-length 2
+          company-show-numbers          t
+          company-tooltip-limit         20
+          ompany-tooltip-align-annotations t
+          company-dabbrev-downcase      nil
+          company-dabbrev-ignore-case   nil
+          company-backends '(company-dabbrev-code company-dabbrev company-clang
+                                                  company-irony company-go company-keywords company-capf ))
+
+    (company-tng-configure-default)
+    ;; Use numbers 0-9 (in addition to M-<num>) to select company completion candidates
+    (mapc (lambda (x) (define-key company-active-map (format "%d" x) 'company-complete-number))
+          (number-sequence 0 9))
+
+    :bind
+    ("M-/" . company-complete)
+    (:map company-active-map
+          ("RET" . company-complete)
+          ("C-n" . company-select-next)
+          ("C-o" . company-other-backend)
+          ("C-p" . company-select-previous)
+          ("C-v" . company-next-page)
+          ("M-v" . company-previous-page)
+          ("C-<" . company-select-first)
+          ("C->" . company-select-last)
+          ("M-<" . company-select-first)
+          ("M->" . company-select-last))
+    (:map company-search-map
+          ("RET" . company-complete)
+          ("C-n" . company-select-next)
+          ("C-o" . company-other-backend))
+    )
+
+
+    (if nil ; shmul's original
+        (use-package company
+          :ensure t
+          :defer t
+          :config
+          (global-company-mode)
+          (company-tng-configure-default)
+          (setq company-idle-delay            nil
+                company-minimum-prefix-length 2
+                company-show-numbers          t
+                company-tooltip-limit         20
+                company-dabbrev-downcase      nil
+                company-dabbrev-ignore-case   nil
+                                        ;company-frontends '(company-pseudo-tooltip-unless-just-one-frontend company-tng-frontend)
+                company-backends '(company-dabbrev-code company-keywords company-dabbrev company-clang company-irony company-capf))
+                                        ;company-backends '(company-css company-semantic company-clang company-dabbrev-code company-keywords company-files company-capf company-dabbrev))
+          :bind
+          ("M-/" . company-complete)
+          (:map company-active-map
+                ("ESC" . company-abort))
+          ;;       ("TAB" . company-select-next)
+          ;;       ("<backtab>" . company-select-previous)
+          ;;       ("RET" . nil))
+          )
+      )
+
+    (use-package company-quickhelp          ; Documentation popups for Company
+      :ensure t
+      :defer t
+      :init (add-hook 'global-company-mode-hook #'company-quickhelp-mode)
+      :bind
+      ("C-c h" . company-quickhelp-manual-begin))
+
+    (use-package company-web-html
+      )
+
+    (use-package company-statistics
+      :config
+      (company-statistics-mode)
+      )
   )
 
 (defun setup-misc-modes ()
@@ -389,9 +543,105 @@
                                 (files ("*.jpg" "*.png" "*.zip" "*.txt" "*.log" "*.orig" "*~"))))
     :bind
     ("C-x f" . fiplr-find-file)
+    )
 
+  (use-package imenu-list
+    :defer t
+    :config
+    (setq imenu-list-focus-after-activation t
+          imenu-list-auto-resize t)
+    :bind
+    ("C-'" . imenu-list-smart-toggle)
     )
   )
+
+(defun setup-window-management()
+  ;(desktop-save-mode 1)
+  ;; +-------------+---------+
+  ;; |             | compile |
+  ;; |     edit    | search  |
+  ;; |             | magit   |
+  ;; +-------------+---------+
+  ;; |     ?       |   ?     |
+  ;; +-------------+---------+
+
+  (windmove-default-keybindings)
+
+
+  (use-package golden-ratio :disabled
+    :ensure t
+    :init
+    (golden-ratio-mode 1)
+    :config
+    (setq golden-ratio-auto-scale t)
+    )
+
+  (use-package zygospore :disabled
+    :bind
+    ("C-x 1" . zygospore-toggle-delete-other-windows)
+    )
+
+  (use-package zoom :disabled
+    (defun size-callback ()
+      (cond ((> (frame-pixel-width) 1024) '(90 . 0.75))
+            (t                            '(0.55 . 0.45))))
+
+    :config
+    (zoom-mode t)
+    :bind
+    ("C--" . zoom)
+    )
+
+  ;; based on https://github.com/kaushalmodi/.emacs.d/blob/master/setup-files/setup-shackle.el
+  (use-package shackle
+    :ensure t
+    :config
+    (progn
+      (setq shackle-lighter "")
+      (setq shackle-select-reused-windows nil) ; default nil
+      (setq shackle-default-alignment 'below) ; default below
+      (setq shackle-default-size 0.4) ; default 0.5
+
+      (setq shackle-rules
+            ;; CONDITION(:regexp)            :select     :inhibit-window-quit   :size+:align|:other     :same|:popup
+            '((compilation-mode              :select nil                                               )
+              ("*undo-tree*"                 :select t                          :size 0.25 :align right)
+              ("*eshell*"                    :select t                          :other t               )
+              ("*Shell Command Output*"      :select nil                                               )
+              (occur-mode                    :select nil                                   :align t    )
+              ("*Help*"                      :select t   :inhibit-window-quit t :other t               )
+              ("*Completions*"                                                  :size 0.3  :align t    )
+              ("*Messages*"                  :select nil :inhibit-window-quit t :other t               )
+              ("\\*[Wo]*Man.*\\*"  :regexp t :select t   :inhibit-window-quit t :other t               )
+              ("*Calendar*"                  :select t                          :size 0.3  :align below)
+              ("*ag search*"                 :select t                          :size 0.3  :align below)
+              ("*cscope*"        :select t                          :size 0.3  :align below)
+              ("*info*"                      :select t   :inhibit-window-quit t                         :same t)
+              (magit-status-mode             :select t   :inhibit-window-quit t                         :popup t)
+              (magit-log-mode                :select t   :inhibit-window-quit t                         :same t)
+              ))
+
+      (shackle-mode 1))
+    )
+
+
+
+  (use-package window-purpose :disabled
+    :ensure t
+    :init
+    (purpose-mode)
+    :config
+    ;(purpose-x-golden-ratio-setup)
+    (purpose-x-code1-setup)
+    :bind
+    ("C-x 4" . purpose-x-code1-setup)
+    ;; (add-to-list 'purpose-user-mode-purposes '(c-mode . c-file-purpose))
+    ;; (add-to-list 'purpose-user-mode-purposes '(cscope-list-entry-mode . cscope-purpose))
+    ;; (add-to-list 'purpose-user-mode-purposes '(compilation-mode . compilation-purpose))
+    ;; ;; build it
+    ;;(purpose-compile-user-configuration)
+    )
+)
 
 (defun setup-ocaml ()
   ;;;; from https://github.com/diml/utopa
@@ -466,14 +716,83 @@
             try-complete-file-name-partially
             try-complete-file-name
             ))
+    :bind
+    ("M-<return>" . hippie-expand)
     )
   )
 
 (defun setup-auto-complete ()
   (use-package auto-complete
+    :commands auto-complete-mode
+    :init
+    (progn
+      (auto-complete-mode t))
+    :bind (("C-n" . ac-next)
+           ("C-p" . ac-previous))
     :config
-    (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
-    (ac-config-default)
+    (progn
+      (use-package auto-complete-config)
+
+      (ac-set-trigger-key "TAB")
+      (ac-config-default)
+
+      (setq ac-delay 0.02)
+      (setq ac-use-menu-map t)
+      (setq ac-menu-height 50)
+      (setq ac-use-quick-help nil)
+      (setq ac-comphist-file  "~/.emacs.d/ac-comphist.dat")
+      (setq ac-ignore-case nil)
+      (setq ac-dwim t)
+      (setq ac-fuzzy-enable t)
+
+      (use-package ac-dabbrev
+        :config
+        (progn
+          (add-to-list 'ac-sources 'ac-source-dabbrev)))
+
+      (setq ac-modes '(js2-mode
+                       c-mode
+                       cc-mode
+                       c++-mode
+                       go-mode
+                       web-mode
+                       ocaml-mode
+                       tuareg-mode
+                       haskell-mode
+                       python-mode
+                       ruby-mode
+                       lua-mode
+                       javascript-mode
+                       js-mode
+                       css-mode
+                       makefile-mode
+                       sh-mode
+                       xml-mode
+                       emacs-lisp-mode
+                       lisp-mode
+                       lisp-interaction-mode
+                       java-mode
+                       scheme-mode
+                       sgml-mode
+                       ts-mode)))
+    )
+
+  ;; Completion words longer than 4 characters
+  (use-package ac-ispell
+    :config
+    (custom-set-variables
+     '(ac-ispell-requires 4)
+     '(ac-ispell-fuzzy-limit 4))
+    (ac-ispell-setup)
+    (add-hook 'git-commit-mode-hook 'ac-ispell-ac-setup)
+    )
+
+  (use-package ac-c-headers
+    :config
+    (add-hook 'c-mode-hook
+              (lambda ()
+                (add-to-list 'ac-sources 'ac-source-c-headers)
+                (add-to-list 'ac-sources 'ac-source-c-header-symbols t)))
     )
   )
 
@@ -732,10 +1051,20 @@
     )
   )
 
-;; using http://stackoverflow.com/a/40789413
+
 (defun setup-smart-compile ()
+  ; from https://emacs.stackexchange.com/a/8137
+  (use-package ansi-color
+    :config
+    (defun my/ansi-colorize-buffer ()
+      (let ((buffer-read-only nil))
+        (ansi-color-apply-on-region (point-min) (point-max))))
+    (add-hook 'compilation-filter-hook 'my/ansi-colorize-buffer)
+    )
+
   (use-package smart-compile
     :config
+    ;; using http://stackoverflow.com/a/40789413
     (setq compilation-last-buffer nil)
     (defun compile-again (ARG)
       "Run the same compile as the last time.
@@ -751,13 +1080,11 @@ and you can reconfigure the compile args."
         (call-interactively 'smart-compile)))
     ;; create a new small frame to show the compilation info
     ;; will be auto closed if no error
-    (setq special-display-buffer-names
-          `(("*compilation*" . ((name . "*compilation*")
-                                ,@default-frame-alist
-                                (left . 740) ;; should be dynamically caluclated using frame-text-width
-                                (top . 0)
-                                (height . 80)
-                                ))))
+    ;; (setq special-display-buffer-names
+    ;;       `(("*compilation*" . ((name . "*compilation*")
+    ;;                             ,@default-frame-alist
+    ;;                             (left . (- 1))
+    ;;                             (top . 0)))))
     (setq compilation-finish-functions
           (lambda (buf str)
             (if (null (string-match ".*exited abnormally.*" str))
@@ -769,19 +1096,120 @@ and you can reconfigure the compile args."
                   (message "No Compilation Errors!")))))
 
     :bind (("C-x C-m" . compile-again))
-  )
+    )
+
+    ;; using https://stackoverflow.com/a/28268829
+;;     (setq compilation-last-buffer nil)
+;;     (defun compile-again (ARG)
+;;       "Run the same compile as the last time.
+
+;; If there is no last time, or there is a prefix argument, this acts like M-x compile."
+;;       (interactive "p")
+;;       (if (and (eq ARG 1)
+;;                compilation-last-buffer)
+;;           (progn
+;;             (set-buffer compilation-last-buffer)
+;;             (revert-buffer t t))
+;;         (progn
+;;           (call-interactively 'smart-compile)
+;;           (setq cur (selected-window))
+;;           (setq w (get-buffer-window "*compilation*"))
+;;           (select-window w)
+;;           (setq h (window-height w))
+;;           (shrink-window (- h 10))
+;;           (select-window cur))))
+
+;;     (defun my-compilation-hook ()
+;;       "Make sure that the compile window is splitting vertically."
+;;       (progn
+;;         (if (not (get-buffer-window "*compilation*"))
+;;             (progn
+;;               (split-window-vertically)))))
+;;     (add-hook 'compilation-mode-hook 'my-compilation-hook)
+;;     (defun compilation-exit-autoclose (STATUS code msg)
+;;       "Close the compilation window if there was no error at all."
+;;       ;; If M-x compile exists with a 0
+;;       (when (and (eq STATUS 'exit) (zerop code))
+;;         ;; then bury the *compilation* buffer, so that C-x b doesn't go there
+;;         (bury-buffer)
+;;         ;; and delete the *compilation* window
+;;         (delete-window (get-buffer-window (get-buffer "*compilation*"))))
+;;       ;; Always return the anticipated result of compilation-exit-message-function
+;;       (cons msg code))
+;;     (setq compilation-exit-message-function 'compilation-exit-autoclose)
+;;     (defvar all-overlays ())
+;;     (defun delete-this-overlay(overlay is-after begin end &optional len)
+;;       (delete-overlay overlay)
+;;       )
+;;     (defun highlight-current-line ()
+;;       "Highlight current line."
+;;       (interactive)
+;;       (setq current-point (point))
+;;       (beginning-of-line)
+;;       (setq beg (point))
+;;       (forward-line 1)
+;;       (setq end (point))
+;;       ;; Create and place the overlay
+;;       (setq error-line-overlay (make-overlay 1 1))
+
+;;       ;; Append to list of all overlays
+;;       (setq all-overlays (cons error-line-overlay all-overlays))
+
+;;       (overlay-put error-line-overlay
+;;                    'face '(background-color . "red"))
+;;       (overlay-put error-line-overlay
+;;                    'modification-hooks (list 'delete-this-overlay))
+;;       (move-overlay error-line-overlay beg end)
+;;       (goto-char current-point))
+
+;;     (defun delete-all-overlays ()
+;;       "Delete all overlays"
+;;       (while all-overlays
+;;         (delete-overlay (car all-overlays))
+;;         (setq all-overlays (cdr all-overlays))))
+;;     (defun highlight-error-lines(compilation-buffer process-result)
+;;       (interactive)
+;;       (delete-all-overlays)
+;;       (condition-case nil
+;;           (while t
+;;             (next-error)
+;;             (highlight-current-line))
+;;         (error nil)))
+;;     (setq compilation-finish-functions 'highlight-error-lines)
+
 )
 
 (defun setup-markdown ()
   (use-package markdown-mode
     :ensure t
     :commands (markdown-mode gfm-mode)
+    :config
+    (setq markdown-command "multimarkdown")
     :mode (("README\\.md\\'" . gfm-mode)
            ("\\.md\\'" . markdown-mode)
            ("\\.markdown\\'" . markdown-mode))
-    :init (setq markdown-command "multimarkdown")
     )
   )
+
+(defun setup-flycheck ()
+  (use-package flycheck
+    :ensure t
+    :init (global-flycheck-mode)
+    )
+  )
+
+(defun setup-irony ()
+  (use-package irony
+    :ensure t
+    :init
+    (add-hook 'c++-mode-hook 'irony-mode)
+    (add-hook 'c-mode-hook 'irony-mode)
+    (add-hook 'objc-mode-hook 'irony-mode)
+
+    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+    )
+  )
+
 
 (defun my-after-init-hook ()
   (load custom-file)
@@ -795,17 +1223,17 @@ and you can reconfigure the compile args."
                                         ;(setup-ocaml)
   (setup-ido)
   (setup-hippie)
-                                        ;(setup-auto-complete)
+  (setup-auto-complete)
                                         ;(setup-swoop)
   (setup-expand-region)
   (setup-misc-modes)
-  ;(setup-swiper)
-  (setup-corral)
+                                        ;(setup-swiper)
+                                        ;(setup-corral)
                                         ;(setup-anzu)
                                         ;(setup-notes-taking)
                                         ;(setup-smartwin)
   (setup-fuzzy)
-  ;(setup-git-gutter)
+                                        ;(setup-git-gutter)
                                         ;(setup-docker)
   (setup-go)
   (setup-theme)
@@ -819,6 +1247,12 @@ and you can reconfigure the compile args."
   (setup-web-mode)
   (setup-mode-line)
                                         ;(setup-helm)
+                                        ;(setup-function-args)
+                                        ;(setup-company)
+  (setup-flycheck)
+  (setup-window-management)
+  (setup-irony)
+
   (set-keys)
   (mode-hooks)
   (mode-mapping)
