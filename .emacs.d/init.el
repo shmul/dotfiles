@@ -353,6 +353,37 @@
     )
   )
 
+(defun setup-c-coding ()
+  (use-package c-eldoc
+    :init
+    ;;(setq c-eldoc-includes "`pkg-config gtk+-2.0 --cflags` -I./ -I../ ")
+    (add-hook 'c-mode-hook 'c-turn-on-eldoc-mode)
+    )
+
+  (use-package ggtags
+    :init
+    (add-hook 'c-mode-common-hook
+              (lambda ()
+                (when (derived-mode-p 'c-mode 'c++-mode)
+                  (ggtags-mode 1))))
+    (set (make-local-variable 'eldoc-documentation-function)
+         'ggtags-eldoc-function)
+    (setq-local imenu-create-index-function #'ggtags-build-imenu-index)
+    (setq-local hippie-expand-try-functions-list
+                (cons 'ggtags-try-complete-tag hippie-expand-try-functions-list))
+    :bind
+    (:map ggtags-mode-map
+          ("C-c g s" . ggtags-find-other-symbol)
+          ("C-c g h" . ggtags-view-tag-history)
+          ("C-c g r" . ggtags-find-reference)
+          ("C-c g d" . ggtags-find-definition)
+          ("C-c g f" . ggtags-find-file)
+          ("C-c g c" . ggtags-create-tags)
+          ("C-c g u" . ggtags-update-tags)
+          ("M-," . pop-tag-mark))
+    )
+  )
+
 
 (defun setup-function-args ()
   (use-package function-args
@@ -546,7 +577,7 @@ inserted."
     )
 
   (use-package imenu-list
-    :defer t
+    ;:defer t
     :config
     (setq imenu-list-focus-after-activation t
           imenu-list-auto-resize t)
@@ -568,7 +599,7 @@ inserted."
   (windmove-default-keybindings)
 
 
-  (use-package golden-ratio :disabled
+  (use-package golden-ratio
     :ensure t
     :init
     (golden-ratio-mode 1)
@@ -616,6 +647,7 @@ inserted."
               ("*Calendar*"                  :select t                          :size 0.3  :align below)
               ("*ag search*"                 :select t                          :size 0.3  :align below)
               ("*cscope*"        :select t                          :size 0.3  :align below)
+              ("*ggtags-global*"        :select t                          :size 0.3  :align below)
               ("*info*"                      :select t   :inhibit-window-quit t                         :same t)
               (magit-status-mode             :select t   :inhibit-window-quit t                         :popup t)
               (magit-log-mode                :select t   :inhibit-window-quit t                         :same t)
@@ -964,10 +996,10 @@ inserted."
   (use-package golint
     )
 
-   (use-package go-eldoc
-     :config
-     (add-hook 'go-mode-hook 'go-eldoc-setup)
-     )
+  (use-package go-eldoc
+    :config
+    (add-hook 'go-mode-hook 'go-eldoc-setup)
+    )
    ;; (use-package go-autocomplete
    ;;   :config
    ;;   (auto-complete-mode 1)
@@ -1004,11 +1036,6 @@ inserted."
         (indent-region point-before (point)))))
   (ad-activate 'yank)
 
-  )
-
-(defun setup-flycheck ()
-  (use-package global-flycheck-mode
-    )
   )
 
 (defun setup-hilight ()
@@ -1208,6 +1235,11 @@ and you can reconfigure the compile args."
 
     (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
     )
+
+  (use-package irony-eldoc
+    :config
+    (add-hook 'irony-mode-hook #'irony-eldoc)
+    )
   )
 
 
@@ -1240,19 +1272,19 @@ and you can reconfigure the compile args."
   (setup-auto-indent)
                                         ;(setup-hilight)
   (setup-avy)
-  (setup-cscope)
+                                        ;(setup-cscope)
   (setup-undo-tree)
   (setup-smart-compile)
   (setup-markdown)
   (setup-web-mode)
-  (setup-mode-line)
+                                        ;(setup-mode-line)
                                         ;(setup-helm)
                                         ;(setup-function-args)
                                         ;(setup-company)
-  (setup-flycheck)
+                                        ;(setup-flycheck)
   (setup-window-management)
-  (setup-irony)
-
+                                        ;(setup-irony)
+  (setup-c-coding)
   (set-keys)
   (mode-hooks)
   (mode-mapping)
