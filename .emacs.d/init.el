@@ -4,13 +4,16 @@
 
 (require 'package)
 (setq package-enable-at-startup nil)
+
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa"))
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/melpa"))
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp/Emacs-wgrep-2.1.10"))
+
 (package-initialize)
 
-;; Bootstrap `use-package'
+(server-start)
+;; Bootstrap use-package
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
@@ -19,7 +22,8 @@
 (defvar windows-p (string-match "windows-nt" (symbol-name system-type)))
 (defvar linux-p (string-match "gnu/linux" (symbol-name system-type)))
 
-
+;; based on a recommendation from https://github.com/lewang/flx
+(setq gc-cons-threshold 20000000)
 
 (defun setup-helm ()
   (use-package helm
@@ -88,14 +92,18 @@
   (defun my-default-mode-hook ()
     )
 
-  (defun my-cc-mode-hook ()
+  (defun my-default-prog-mode-hook ()
     (my-default-mode-hook)
+    ;; seems to slow us down - (idle-highlight)
+    )
+
+  (defun my-cc-mode-hook ()
+    (my-default-prog-mode-hook)
     (setq c-default-style "k&r"
           c-basic-offset 4)
     (setq show-trailing-whitespace t)
     (c-toggle-hungry-state)
     (c-toggle-auto-state -1)
-    (cscope-setup)
     ;(superword-mode 1)
     )
 
@@ -108,12 +116,13 @@
 
 
   (defun my-ruby-mode-hook ()
-    (my-default-mode-hook)
+    (my-default-prog-mode-hook)
     (c-toggle-hungry-state)
     )
 
   (defun my-web-mode-hook ()
     "Hooks for Web mode."
+    (my-default-prog-mode-hook)
     (setq web-mode-markup-indent-offset 2)
     (setq web-mode-css-indent-offset 2)
     (setq web-mode-code-indent-offset 2)
@@ -138,8 +147,8 @@
 
   (add-hook 'makefile-mode-hook 'my-default-mode-hook)
   (add-hook 'mutt-mode-hook 'my-default-mode-hook)
-  (add-hook 'perl-mode-hook 'my-default-mode-hook)
-  (add-hook 'cperl-mode-hook 'my-default-mode-hook)
+  ;; (add-hook 'perl-mode-hook 'my-default-mode-hook)
+  ;; (add-hook 'cperl-mode-hook 'my-default-mode-hook)
   (add-hook 'java-mode-hook 'my-cc-mode-hook)
   (add-hook 'tex-mode-hook 'my-default-mode-hook)
   (add-hook 'latex-mode-hook 'my-default-mode-hook)
@@ -147,20 +156,15 @@
   (add-hook 'compilation-mode-hook 'my-default-mode-hook)
   (add-hook 'nxml-my 'mode-default-mode-hook)
 
-  (add-hook 'lua-mode-hook 'my-default-mode-hook)
+  (add-hook 'lua-mode-hook 'my-default-prog-mode-hook)
   (add-hook 'text-mode-hook 'my-default-mode-hook)
   (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)
 
-  (add-hook 'rails-modee-hook 'my-default-mode-hook)
   (add-hook 'sh-mode-hook 'my-sh-mode-hook)
-  (add-hook 'objc-mode-hook 'my-default-mode-hook)
+  ;; (add-hook 'objc-mode-hook 'my-default-mode-hook)
   (add-hook 'web-mode-hook  'my-web-mode-hook)
   (add-hook 'compilation-finish-functions 'my-shorten-filenames-in-compilation)
 
-  (defun maybe-goldy-offset ()
-    (if (string-match "goldy" buffer-file-name)
-        (setq c-basic-offset 4)))
-  (add-hook 'c-mode-hook 'maybe-goldy-offset)
   )
 
 
@@ -192,6 +196,7 @@
   (add-to-mode-list "\\.m$" 'objc-mode)
   (add-to-mode-list "\\.mm$" 'objc-mode)
   (add-to-mode-list "\\.go$" 'go-mode)
+  (add-to-mode-list "^go\\.mod$" 'go-mode)
   (add-to-mode-list "\\.rb$" 'ruby-mode)
   (add-to-mode-list "\\.ru$" 'ruby-mode)
   (add-to-mode-list "rakefile$" 'ruby-mode)
@@ -219,7 +224,7 @@
   ;; override Macbook pro annoying backtick/tilde placement
   (global-set-key "§" "`")
   (global-set-key "±" "~")
-  (global-set-key "\C-x§" 'next-error)
+  (global-set-key "\C-c§" 'next-error)
   (global-set-key (kbd "C-x k") 'kill-this-buffer)
 
   (global-unset-key "\C-j")
@@ -247,8 +252,8 @@
   (global-set-key "\C-cf" 'find-file-at-point)
   (global-set-key (kbd "C-<tab>") 'comint-replace-by-expanded-filename)
 
-  (global-set-key (kbd "C-M-<down>") 'forward-list)
-  (global-set-key (kbd "C-M-<up>") 'backward-list)
+  ;;(global-set-key (kbd "C-M-<down>") 'forward-list)
+  ;;(global-set-key (kbd "C-M-<up>") 'backward-list)
   (global-set-key (kbd "C-M-<right>") 'jump-to-white)
   (global-set-key (kbd "C-<right>") 'forward-word)
   (global-set-key (kbd "C-<left>") 'backward-word)
@@ -278,8 +283,8 @@
   (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 
   (global-set-key (kbd "C-`") 'switch-to-previous-buffer)
-  (global-set-key (kbd "C-x g") 'ag)
-  (global-set-key (kbd "C-x C-g") 'ag)
+  (global-set-key (kbd "C-x g") 'rg)
+  (global-set-key (kbd "C-c C-g") 'goto-address-at-point)
   (global-set-key (kbd "C-x m") 'magit-status)
 
   (global-set-key (kbd "C-+") 'align)
@@ -287,6 +292,11 @@
 
   (global-set-key (kbd "C-M-c") 'capitalize-first)
 
+  (global-set-key (kbd "M-<left>")  'windmove-left)
+  (global-set-key (kbd "M-<right>") 'windmove-right)
+  (global-set-key (kbd "M-<up>")    'windmove-up)
+  (global-set-key (kbd "M-<down>")  'windmove-down)
+  (global-set-key (kbd "M-#") 'chris2-toggle-case)
   )
 
 (defun setup-scrat ()
@@ -316,14 +326,6 @@
     )
   )
 
-(defun setup-which-key ()
-  (use-package which-key
-     :config
-     (which-key-mode)
-     )
-
-  )
-
 (defun setup-web-mode ()
   (use-package web-mode)
   (use-package web-beautify
@@ -341,6 +343,15 @@
     ;;   (add-hook 'before-save-hook 'web-beautify-mode t))
     ;; (add-hook 'js2-mode-hook 'my-js-mode-hook)
     )
+  (use-package xref-js2
+    :config
+    ;; (setq semantic-symref-filepattern-alist
+    ;;       (append semantic-symref-filepattern-alist
+    ;;               '((js2-mode "*.js" ))))
+    (add-hook 'js2-mode-hook
+              (lambda ()
+                (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
+    )
   )
 
 (defun setup-mode-line ()
@@ -354,10 +365,10 @@
   )
 
 (defun setup-c-coding ()
-  (use-package c-eldoc
+  (use-package c-eldoc :disabled
     :init
     ;;(setq c-eldoc-includes "`pkg-config gtk+-2.0 --cflags` -I./ -I../ ")
-    (add-hook 'c-mode-hook 'c-turn-on-eldoc-mode)
+    (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode)
     )
 
   (use-package ggtags
@@ -371,6 +382,7 @@
     (setq-local imenu-create-index-function #'ggtags-build-imenu-index)
     (setq-local hippie-expand-try-functions-list
                 (cons 'ggtags-try-complete-tag hippie-expand-try-functions-list))
+    (setq ggtags-highlight-tag nil)
     :bind
     (:map ggtags-mode-map
           ("C-c g s" . ggtags-find-other-symbol)
@@ -381,9 +393,40 @@
           ("C-c g c" . ggtags-create-tags)
           ("C-c g u" . ggtags-update-tags)
           ("M-," . pop-tag-mark))
+    ;; (:map ggtags-navigation-map
+    ;;       ("C-M-}" . ggtags-navigation-next-file)
+    ;;       ("C-M-{" . ggtags-navigation-previous-file)
+    ;;       ("C-M-=" . ggtags-navigation-start-file)
+    ;;       ("C-M->" . ggtags-navigation-last-error)
+    ;;       ("C-M-<" . first-error))
+    ;; (define-key ggtags-navigation-map "M-ss" nil)  ;; to prevent overriding our isearch
+    )
+
+  (use-package call-graph
+    :config
+    ;;(setq call-graph-initial-max-depth 3)
     )
   )
 
+(defun setup-projectile ()
+  (use-package projectile
+    :config
+    (projectile-mode +1)
+    (defun maybe-projectile-find-file ()
+      (interactive)
+      (call-interactively
+       (if (projectile-project-p)
+           #'projectile-find-file
+         #'ido-find-file)))
+    :bind
+    ;;("C-x C-f" . maybe-projectile-find-file)
+    (:map projectile-mode-map
+          ("s-p" . projectile-command-map)
+          ("C-c p" . projectile-command-map)
+    )
+  ;;(use-package projectile-ripgrep)
+    )
+  )
 
 (defun setup-function-args ()
   (use-package function-args
@@ -492,32 +535,6 @@ inserted."
     )
 
 
-    (if nil ; shmul's original
-        (use-package company
-          :ensure t
-          :defer t
-          :config
-          (global-company-mode)
-          (company-tng-configure-default)
-          (setq company-idle-delay            nil
-                company-minimum-prefix-length 2
-                company-show-numbers          t
-                company-tooltip-limit         20
-                company-dabbrev-downcase      nil
-                company-dabbrev-ignore-case   nil
-                                        ;company-frontends '(company-pseudo-tooltip-unless-just-one-frontend company-tng-frontend)
-                company-backends '(company-dabbrev-code company-keywords company-dabbrev company-clang company-irony company-capf))
-                                        ;company-backends '(company-css company-semantic company-clang company-dabbrev-code company-keywords company-files company-capf company-dabbrev))
-          :bind
-          ("M-/" . company-complete)
-          (:map company-active-map
-                ("ESC" . company-abort))
-          ;;       ("TAB" . company-select-next)
-          ;;       ("<backtab>" . company-select-previous)
-          ;;       ("RET" . nil))
-          )
-      )
-
     (use-package company-quickhelp          ; Documentation popups for Company
       :ensure t
       :defer t
@@ -535,6 +552,7 @@ inserted."
   )
 
 (defun setup-misc-modes ()
+  (use-package autobookmarks)
   (use-package yaml-mode)
   (use-package goto-last-change)
   (use-package magit)
@@ -584,6 +602,30 @@ inserted."
     :bind
     ("C-'" . imenu-list-smart-toggle)
     )
+
+  (use-package which-key
+    :config
+    (which-key-mode)
+    )
+
+  (use-package rg
+    :config
+    (rg-enable-default-bindings)
+    (add-hook 'rg-mode-hook 'wgrep-ag-setup)
+    )
+
+  (use-package move-text
+    :bind
+    ([C-S-up] . move-text-up)
+    ([C-S-down] . move-text-down)
+    )
+
+  ;; (use-package idle-highlight
+  ;;   )
+
+  (use-package osx-dictionary
+    )
+
   )
 
 (defun setup-window-management()
@@ -596,8 +638,20 @@ inserted."
   ;; |     ?       |   ?     |
   ;; +-------------+---------+
 
-  (windmove-default-keybindings)
+  (use-package buffer-move
+    :ensure t
+    ;; no key bindings required (yet). Use:
+    ;; (global-set-key (kbd "<C-S-up>")     'buf-move-up)
+    ;; (global-set-key (kbd "<C-S-down>")   'buf-move-down)
+    ;; (global-set-key (kbd "<C-S-left>")   'buf-move-left)
+    ;; (global-set-key (kbd "<C-S-right>")  'buf-move-right)
+    )
 
+  (use-package rotate
+    :bind
+    ("M-^" . rotate-window)
+    ("C-M-^" . rotate-layout)
+    )
 
   (use-package golden-ratio
     :ensure t
@@ -613,18 +667,19 @@ inserted."
     )
 
   (use-package zoom :disabled
-    (defun size-callback ()
-      (cond ((> (frame-pixel-width) 1024) '(90 . 0.75))
-            (t                            '(0.55 . 0.45))))
-
     :config
     (zoom-mode t)
+    ;; (defun size-callback ()
+    ;;   (cond ((> (frame-pixel-width) 1024) '(90 . 0.75))
+    ;;         (t                            '(0.618 . 0.618))))
+    ;; (custom-set-variables
+    ;;  '(zoom-size 'size-callback))
     :bind
     ("C--" . zoom)
     )
 
   ;; based on https://github.com/kaushalmodi/.emacs.d/blob/master/setup-files/setup-shackle.el
-  (use-package shackle
+  (use-package shackle :disabled
     :ensure t
     :config
     (progn
@@ -647,7 +702,7 @@ inserted."
               ("*Calendar*"                  :select t                          :size 0.3  :align below)
               ("*ag search*"                 :select t                          :size 0.3  :align below)
               ("*cscope*"        :select t                          :size 0.3  :align below)
-              ("*ggtags-global*"        :select t                          :size 0.3  :align below)
+              ;;("*ggtags-global*"        :select t                          :size 0.3  :align below)
               ("*info*"                      :select t   :inhibit-window-quit t                         :same t)
               (magit-status-mode             :select t   :inhibit-window-quit t                         :popup t)
               (magit-log-mode                :select t   :inhibit-window-quit t                         :same t)
@@ -716,23 +771,66 @@ inserted."
   )
 
 (defun setup-theme ()
-  (use-package color-theme
-    :ensure t
-    :config
-    (color-theme-initialize)
-    (load-theme 'brin)
-    )
+  ;(load-theme 'brin)
+  (load-theme 'sanityinc-tomorrow-eighties)
   )
 
 (defun setup-ido ()
+  (use-package browse-url) ;; ffap source says to load browse-url prior to ffap
+  (use-package ido-grid-mode)
   (use-package ido
     :config
     (ido-mode 1)
+    (ido-everywhere)
+    (ido-grid-mode 1)
     (setq
      read-buffer-function 'ido-read-buffer
-     ido-enable-flex-matching t)
+     ido-enable-flex-matching t
+     ido-use-filename-at-point 'guess
+     )
                                         ; from emacs wiki
     (setq ido-execute-command-cache nil))
+
+  (use-package flx-ido
+    :config
+    (flx-ido-mode 1)
+    ;; disable ido faces to see flx highlights.
+    (setq ido-enable-flex-matching t)
+    (setq ido-use-faces nil)
+    )
+
+  ;; from https://gist.github.com/nmurthy/3427972
+  (add-hook 'ido-setup-hook 'ido-my-keys)
+
+  (defun ido-completing-read-horiz (prompt choices &optional _predicate require-match
+                                           initial-input hist def _inherit-input-method)
+    "do ido-completing-read, but horizontally"
+    (let ((old-decorations ido-decorations)
+          (res ""))
+      (setq ido-decorations '( "{" "}" " | " " | ..." "[" "]" " [No match]" " [Matched]" " [Not readable]" " [Too big]" " [Confirm]"))
+      (setq res (ido-completing-read prompt choices _predicate require-match initial-input hist def _inherit-input-method))
+      (setq ido-decorations old-decorations)
+      (identity res)))
+
+  (defun my-ido-search-directories ()
+    "Search directory list to jump to one quickly"
+    (interactive)
+    (let* ((enable-recursive-minibuffers t)
+           (dirlist (remove-if (lambda (x) (string= "" x)) (split-string ido-current-directory "/")))
+           (chosen (ido-completing-read-horiz (concat "Choose dir (" (mapconcat 'identity dirlist ",") "): ") dirlist))
+           (chosen-dir-start-idx (string-match chosen ido-current-directory))
+           (chosen-dir-end-idx (match-end 0))
+           (chosen-dir (substring ido-current-directory 0 chosen-dir-end-idx)))
+      (when chosen-dir
+        (ido-set-current-directory chosen-dir)
+        (setq ido-exit 'refresh)
+        (exit-minibuffer))))
+
+  (defun ido-my-keys ()
+    "Add my keybindings for ido."
+    (define-key ido-completion-map "\C-t" 'projectile-find-file)
+    ;;(define-key ido-completion-map "\C-t" 'my-ido-search-directories)
+    )
   )
 
 (defun setup-hippie ()
@@ -753,79 +851,96 @@ inserted."
     )
   )
 
+(defun setup-yasnippets ()
+  (use-package yasnippet
+    :bind
+    (:map yas-minor-mode-map
+          ("TAB" . nil)
+          ("<tab>" . nil)
+          ("C-<tab>" . yas-expand)
+          )
+    )
+  (use-package yasnippet-snippets
+    )
+  )
+
 (defun setup-auto-complete ()
   (use-package auto-complete
     :commands auto-complete-mode
     :init
-    (progn
-      (auto-complete-mode t))
+    (auto-complete-mode t)
+
     :bind (("C-n" . ac-next)
-           ("C-p" . ac-previous))
+           ("C-p" . ac-previous)
+           (:map ac-completing-map
+                 ("\e" . ac-stop)))
     :config
-    (progn
-      (use-package auto-complete-config)
+    (use-package auto-complete-config)
+    (ac-set-trigger-key "TAB")
 
-      (ac-set-trigger-key "TAB")
-      (ac-config-default)
-
-      (setq ac-delay 0.02)
-      (setq ac-use-menu-map t)
-      (setq ac-menu-height 50)
-      (setq ac-use-quick-help nil)
-      (setq ac-comphist-file  "~/.emacs.d/ac-comphist.dat")
-      (setq ac-ignore-case nil)
-      (setq ac-dwim t)
-      (setq ac-fuzzy-enable t)
-
-      (use-package ac-dabbrev
-        :config
-        (progn
-          (add-to-list 'ac-sources 'ac-source-dabbrev)))
-
-      (setq ac-modes '(js2-mode
-                       c-mode
-                       cc-mode
-                       c++-mode
-                       go-mode
-                       web-mode
-                       ocaml-mode
-                       tuareg-mode
-                       haskell-mode
-                       python-mode
-                       ruby-mode
-                       lua-mode
-                       javascript-mode
-                       js-mode
-                       css-mode
-                       makefile-mode
-                       sh-mode
-                       xml-mode
-                       emacs-lisp-mode
-                       lisp-mode
-                       lisp-interaction-mode
-                       java-mode
-                       scheme-mode
-                       sgml-mode
-                       ts-mode)))
+    (setq ac-delay 0.8
+          ac-use-menu-map t
+          ac-menu-height 50
+          ac-use-quick-help nil
+          ac-comphist-file  "~/.emacs.d/ac-comphist.dat"
+          ac-ignore-case nil
+          ac-dwim t
+          ac-fuzzy-enable nil
+          ac-auto-start nil
+          shmul/ac-sources-c '(ac-source-dabbrev ac-source-gtags ac-source-words-in-same-mode-buffers )
+          shmul/ac-sources-go '(ac-source-dabbrev ac-source-go ac-source-words-in-same-mode-buffers )
+          )
+    (ac-config-default)
+    (setq ac-modes '(js2-mode
+                     c-mode
+                     cc-mode
+                     c++-mode
+                     go-mode
+                     web-mode
+                     ocaml-mode
+                     ;tuareg-mode
+                     ;haskell-mode
+                     python-mode
+                     ruby-mode
+                     lua-mode
+                     javascript-mode
+                     js-mode
+                     css-mode
+                     makefile-mode
+                     sh-mode
+                     ;xml-mode
+                     emacs-lisp-mode
+                     ;lisp-mode
+                     ;lisp-interaction-mode
+                     ;java-mode
+                     ;scheme-mode
+                     protobuf-mode
+                     ))
+    (add-hook 'c-mode-common-hook (lambda ()
+                                    (setq ac-sources shmul/ac-sources-c)))
+    ;;(global-auto-complete-mode t)
+    ;; ;; instead of calling (ac-config-default) here are the functions I want
+    ;; (add-hook 'c-mode-common-hook 'ac-cc-mode-setup)
+    ;; (add-hook 'css-mode-hook 'ac-css-mode-setup)
+    ;; (add-hook 'auto-complete-mode-hook 'ac-common-setup)
     )
 
-  ;; Completion words longer than 4 characters
-  (use-package ac-ispell
-    :config
-    (custom-set-variables
-     '(ac-ispell-requires 4)
-     '(ac-ispell-fuzzy-limit 4))
-    (ac-ispell-setup)
-    (add-hook 'git-commit-mode-hook 'ac-ispell-ac-setup)
+    (use-package ac-dabbrev
     )
 
-  (use-package ac-c-headers
-    :config
-    (add-hook 'c-mode-hook
-              (lambda ()
-                (add-to-list 'ac-sources 'ac-source-c-headers)
-                (add-to-list 'ac-sources 'ac-source-c-header-symbols t)))
-    )
+    (use-package ac-c-headers
+      :ensure t
+      )
+
+    (use-package go-autocomplete
+      :ensure t
+      :config
+      (add-hook 'go-mode-common-hook (lambda ()
+                                       (setq ac-sources shmul/ac-sources-go)))
+
+      )
+
+
   )
 
 (defun setup-swoop ()
@@ -975,7 +1090,6 @@ inserted."
 (defun setup-go ()
   (use-package go-mode
     :config
-    (exec-path-from-shell-initialize)
     (exec-path-from-shell-copy-env "GOPATH")
     (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
     (setq gofmt-command "goimports")
@@ -984,7 +1098,11 @@ inserted."
                                         ; Customize compile command to run go build
       (if (not (string-match "go" compile-command))
           (set (make-local-variable 'compile-command)
-               "gb build")))
+               "gb build"))
+      (go-guru-hl-identifier-mode)
+      (yas-minor-mode-on)
+      )
+
     (add-hook 'go-mode-hook 'my-go-mode-hook)
 
     ;;(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
@@ -996,17 +1114,90 @@ inserted."
   (use-package golint
     )
 
+  (use-package go-guru
+    :ensure t
+    )
+
   (use-package go-eldoc
     :config
     (add-hook 'go-mode-hook 'go-eldoc-setup)
     )
-   ;; (use-package go-autocomplete
-   ;;   :config
-   ;;   (auto-complete-mode 1)
-   ;;   (add-hook 'go-mode-hook 'auto-complete-for-go)
-   ;;   (with-eval-after-load 'go-mode
-   ;;     (require 'go-autocomplete))
-   ;;   )
+
+  (defun gb-gopath ()
+    (defun zerok()
+      ;; from https://raw.githubusercontent.com/zerok/emacs-golang-gb/master/gb-gopath.el
+      ;; Experimental gb support for Emacs
+      ;; This updates the GOPATH inside buffers that work on files located inside
+      ;; of gb projects. For now this only works on Unix systems.
+
+      (defun zerok/setup-gb-gopath ()
+      (interactive)
+      (make-local-variable 'process-environment)
+      (let ((srcPath (_zerok/get-gb-src-folder buffer-file-name)))
+        (when srcPath
+          (let* ((projectPath (string-remove-suffix "/" (file-name-directory srcPath)))
+                 (vendorPath (string-remove-suffix "/" (concat projectPath "/vendor")))
+                 (gopath (concat vendorPath ":" projectPath)))
+            (message "Updating GOPATH to %s" gopath)
+            (setenv "GOPATH" gopath)))))
+
+    (defun _zerok/get-gb-src-folder (path)
+      (let ((parent (directory-file-name (file-name-directory path)))
+            (basename (file-name-nondirectory path)))
+        (cond ((equal "src" basename)
+               (string-remove-suffix "/" path))
+              ((equal "/" parent)
+               nil)
+              (t
+               (_zerok/get-gb-src-folder parent)))))
+
+    (add-hook 'go-mode-hook 'zerok/setup-gb-gopath)
+    )
+
+    (defun mamaar ()
+
+      ;; from https://gist.githubusercontent.com/mamaar/d3249329a01d1fee72d1/raw/99615d88f346e41426d7f553cacbd3256b0a45c6/init.el
+      (defun go-gb-src-path ()
+        ;; Get the src paths from GB tool
+        ;; Returns a list of paths or nil if not in a GB project
+        (let ((res (shell-command-to-string "gb env GB_SRC_PATH")))
+          (unless (string-prefix-p "FATAL" res)
+            (split-string res ":"))))
+
+
+      (defun split-remove-last-join (s)
+                                        ; Removes the last item of a string representing a path
+        (mapconcat 'identity
+                   (butlast
+                    (split-string s "/"))
+                   "/"))
+
+
+      (defun go-gb-environ (src-paths)
+        ;; Remove the src part from the GB project search directories
+        ;; to return the GOPATHs instead.
+        (mapcar
+         'split-remove-last-join
+         src-paths))
+
+      (defun go-path ()
+        (split-string (getenv "GOPATH") ":"))
+
+      (defun go-gb-unique-paths ()
+        (delete-dups
+         (nconc (go-gb-environ (go-gb-src-path))
+                (go-path))))
+
+      (defun go-gb-setup ()
+        (setenv "GOPATH" (mapconcat 'identity (go-gb-unique-paths) ":")))
+
+      (add-hook 'go-mode-hook 'go-gb-setup)
+      )
+
+    (mamaar)
+    )
+
+  (gb-gopath)
 
   )
 
@@ -1244,6 +1435,7 @@ and you can reconfigure the compile args."
 
 
 (defun my-after-init-hook ()
+  (exec-path-from-shell-initialize)
   (load custom-file)
 
   ;; do things after package initialization
@@ -1256,6 +1448,7 @@ and you can reconfigure the compile args."
   (setup-ido)
   (setup-hippie)
   (setup-auto-complete)
+  (setup-yasnippets)
                                         ;(setup-swoop)
   (setup-expand-region)
   (setup-misc-modes)
@@ -1285,6 +1478,7 @@ and you can reconfigure the compile args."
   (setup-window-management)
                                         ;(setup-irony)
   (setup-c-coding)
+  (setup-projectile)
   (set-keys)
   (mode-hooks)
   (mode-mapping)

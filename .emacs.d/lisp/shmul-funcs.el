@@ -641,12 +641,6 @@ shown, then it'll be hidden."
   ;;(paste-to-mark arg)
   )
 
-;; from https://emacs.stackexchange.com/a/28597
-(defun capitalize-first (s)
-  (if (> (length s) 0)
-      (concat (upcase (substring s 0 1)) (downcase (substring s 1)))
-    nil))
-
 
 ;; from https://stackoverflow.com/a/18814469
 (defun copy-buffer-file-name-as-kill (choice)
@@ -670,3 +664,13 @@ shown, then it'll be hidden."
 ;; indents a script element
 (fset 'shmul/indent-script-element
    (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ("</scrip\234" 0 "%d")) arg)))
+
+;; from https://stackoverflow.com/a/22381730
+(defun chris2-toggle-case ()
+  (interactive)
+  (let ((char (following-char)))
+    (if (eq char (upcase char))
+        (insert-char (downcase char) 1 t)
+      (insert-char (upcase char) 1 t)))
+  (delete-char 1 nil)
+  (backward-char))
