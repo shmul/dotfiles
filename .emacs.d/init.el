@@ -4,12 +4,12 @@
 
 (require 'package)
 (setq package-enable-at-startup nil)
-
+(add-to-list 'package-archives
+             '("melpa-stable" . "https://stable.melpa.org/packages/"))
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa"))
+;;(add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa"))
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/melpa"))
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp/Emacs-wgrep-2.1.10"))
-
+(setq-default abbrev-mode t) ; should be set early
 (package-initialize)
 
 (server-start)
@@ -21,6 +21,9 @@
 (defvar macosx-p (string-match "darwin" (symbol-name system-type)))
 (defvar windows-p (string-match "windows-nt" (symbol-name system-type)))
 (defvar linux-p (string-match "gnu/linux" (symbol-name system-type)))
+
+(setq use-package-verbose t)
+;(setq debug-on-error t)
 
 ;; based on a recommendation from https://github.com/lewang/flx
 (setq gc-cons-threshold 20000000)
@@ -101,10 +104,10 @@
     (my-default-prog-mode-hook)
     (setq c-default-style "k&r"
           c-basic-offset 4)
-    (setq show-trailing-whitespace t)
+    ;;(setq show-trailing-whitespace t)
     (c-toggle-hungry-state)
     (c-toggle-auto-state -1)
-    ;(superword-mode 1)
+                                        ;(superword-mode 1)
     )
 
   (defun my-sh-mode-hook ()
@@ -130,7 +133,7 @@
     (setq web-mode-script-padding 1)
     (setq web-mode-block-padding 0)
     (setq web-mode-comment-style 2)
-    ;(set-face-attribute 'web-mode-current-element-highlight-face t :background "LightYellow2")
+                                        ;(set-face-attribute 'web-mode-current-element-highlight-face t :background "LightYellow2")
     (set-face-attribute 'web-mode-current-column-highlight-face t :background "LightYellow2")
                                         ;(hl-tags-mode 1)
     (rainbow-mode 1)
@@ -140,10 +143,10 @@
   (add-hook 'lisp-mode-hook 'my-default-mode-hook)
 
   (add-hook 'c-mode-hook 'my-cc-mode-hook)
-  ;(modify-syntax-entry ?_ "w" c-mode-syntax-table)
+                                        ;(modify-syntax-entry ?_ "w" c-mode-syntax-table)
 
   (add-hook 'c++-mode-hook 'my-cc-mode-hook)
-  ;(modify-syntax-entry ?_ "w" c++-mode-syntax-table)
+                                        ;(modify-syntax-entry ?_ "w" c++-mode-syntax-table)
 
   (add-hook 'makefile-mode-hook 'my-default-mode-hook)
   (add-hook 'mutt-mode-hook 'my-default-mode-hook)
@@ -163,7 +166,7 @@
   (add-hook 'sh-mode-hook 'my-sh-mode-hook)
   ;; (add-hook 'objc-mode-hook 'my-default-mode-hook)
   (add-hook 'web-mode-hook  'my-web-mode-hook)
-  (add-hook 'compilation-finish-functions 'my-shorten-filenames-in-compilation)
+  ;(add-hook 'compilation-finish-functions 'my-shorten-filenames-in-compilation)
 
   )
 
@@ -195,6 +198,7 @@
   (add-to-mode-list "\\.css$" 'css-mode)
   (add-to-mode-list "\\.m$" 'objc-mode)
   (add-to-mode-list "\\.mm$" 'objc-mode)
+  (add-to-mode-list "go.mod" 'go-mode)
   (add-to-mode-list "\\.go$" 'go-mode)
   (add-to-mode-list "^go\\.mod$" 'go-mode)
   (add-to-mode-list "\\.rb$" 'ruby-mode)
@@ -211,13 +215,17 @@
 
 (defun setup-igrep ()
   (use-package igrep
+    :ensure t
     :commands (igrep igrep-find dired-do-igrep dired-do-igrep-find)
 
     :config
     (setq igrep-options "-i -s")
     (setq igrep-expression-quote-char ?')
     (setq igrep-parenthesis-escape-char ?\\)
-    (setq igrep-find-use-xargs nil))
+    (setq igrep-find-use-xargs nil)
+    :bind
+    ("C-c g" . igrep)
+    ("C-c G" . igrep-find))
   )
 
 (defun set-keys ()
@@ -260,7 +268,6 @@
 
   (global-set-key "\C-co" 'other-window)
   (global-set-key "\C-cm" 'buffer-menu)
-  (global-set-key "\C-cp" 'split-window)
 
   (global-set-key "\C-cg" 'igrep)
   (global-set-key "\C-cG" 'igrep-find)
@@ -283,7 +290,6 @@
   (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 
   (global-set-key (kbd "C-`") 'switch-to-previous-buffer)
-  (global-set-key (kbd "C-x g") 'rg)
   (global-set-key (kbd "C-c C-g") 'goto-address-at-point)
   (global-set-key (kbd "C-x m") 'magit-status)
 
@@ -321,36 +327,45 @@
 
 (defun setup-tramp ()
   (use-package tramp
+    :ensure t
     :config
     (setq tramp-default-method "ssh")
     )
   )
 
 (defun setup-web-mode ()
-  (use-package web-mode)
-  (use-package web-beautify
+  (use-package web-mode
+    :ensure t
+    )
+  (use-package web-beautify :disabled
     :config
     (setq web-beautify-js-program "/opt/local/bin/js-beautify")
     (setq web-beautify-html-program "/opt/local/bin/html-beautify")
     )
-  (use-package js-auto-beautify)
+  (use-package js-auto-beautify :disabled
+    )
   (use-package js2-mode
+    :ensure t
     :config
-    (add-hook 'js2-mode-hook 'js-auto-beautify-mode)
-    (add-hook 'js2-mode-hook 'ac-js2-mode)
+    ;;(add-hook 'js2-mode-hook 'js-auto-beautify-mode)
+    (add-hook 'js2-mode-hook (lambda () (setq js2-basic-offset 2)))
     (setq js2-strict-trailing-comma-warning nil)
     ;; (defun my-js-mode-hook()
     ;;   (add-hook 'before-save-hook 'web-beautify-mode t))
     ;; (add-hook 'js2-mode-hook 'my-js-mode-hook)
     )
+
+
   (use-package xref-js2
+    :ensure t
     :config
     ;; (setq semantic-symref-filepattern-alist
     ;;       (append semantic-symref-filepattern-alist
     ;;               '((js2-mode "*.js" ))))
     (add-hook 'js2-mode-hook
               (lambda ()
-                (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
+                (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t))
+              )
     )
   )
 
@@ -364,14 +379,9 @@
     )
   )
 
-(defun setup-c-coding ()
-  (use-package c-eldoc :disabled
-    :init
-    ;;(setq c-eldoc-includes "`pkg-config gtk+-2.0 --cflags` -I./ -I../ ")
-    (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode)
-    )
-
+(defun setup-gnu-global ()
   (use-package ggtags
+    :ensure t
     :init
     (add-hook 'c-mode-common-hook
               (lambda ()
@@ -382,17 +392,21 @@
     (setq-local imenu-create-index-function #'ggtags-build-imenu-index)
     (setq-local hippie-expand-try-functions-list
                 (cons 'ggtags-try-complete-tag hippie-expand-try-functions-list))
-    (setq ggtags-highlight-tag nil)
+    (setq
+     ggtags-highlight-tag nil
+     ggtags-enable-navigation-keys nil)
     :bind
     (:map ggtags-mode-map
-          ("C-c g s" . ggtags-find-other-symbol)
-          ("C-c g h" . ggtags-view-tag-history)
-          ("C-c g r" . ggtags-find-reference)
-          ("C-c g d" . ggtags-find-definition)
-          ("C-c g f" . ggtags-find-file)
-          ("C-c g c" . ggtags-create-tags)
-          ("C-c g u" . ggtags-update-tags)
-          ("M-," . pop-tag-mark))
+          ("C-c l s" . ggtags-find-other-symbol)
+          ("C-c l h" . ggtags-view-tag-history)
+          ("C-c l r" . ggtags-find-reference)
+          ("C-c l d" . ggtags-find-definition)
+          ("C-c l f" . ggtags-find-file)
+          ("C-c l c" . ggtags-create-tags)
+          ("C-c l u" . ggtags-update-tags)
+          ("M-." . ggtags-find-tag-dwim)
+          ("M-," . pop-tag-mark)
+          )
     ;; (:map ggtags-navigation-map
     ;;       ("C-M-}" . ggtags-navigation-next-file)
     ;;       ("C-M-{" . ggtags-navigation-previous-file)
@@ -401,8 +415,24 @@
     ;;       ("C-M-<" . first-error))
     ;; (define-key ggtags-navigation-map "M-ss" nil)  ;; to prevent overriding our isearch
     )
+  (use-package gxref :disabled
+    :ensure t
+    :config
+    (add-to-list 'xref-backend-functions 'gxref-xref-backend)
+    )
 
-  (use-package call-graph
+  )
+
+
+(defun setup-c-coding ()
+  (use-package c-eldoc :disabled
+    :init
+    ;;(setq c-eldoc-includes "`pkg-config gtk+-2.0 --cflags` -I./ -I../ ")
+    (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode)
+    )
+
+
+  (use-package call-graph :disabled
     :config
     ;;(setq call-graph-initial-max-depth 3)
     )
@@ -410,7 +440,11 @@
 
 (defun setup-projectile ()
   (use-package projectile
+    :ensure t
+    :pin melpa-stable
     :config
+    (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+    (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
     (projectile-mode +1)
     (defun maybe-projectile-find-file ()
       (interactive)
@@ -420,11 +454,7 @@
          #'ido-find-file)))
     :bind
     ;;("C-x C-f" . maybe-projectile-find-file)
-    (:map projectile-mode-map
-          ("s-p" . projectile-command-map)
-          ("C-c p" . projectile-command-map)
-    )
-  ;;(use-package projectile-ripgrep)
+
     )
   )
 
@@ -535,55 +565,77 @@ inserted."
     )
 
 
-    (use-package company-quickhelp          ; Documentation popups for Company
-      :ensure t
-      :defer t
-      :init (add-hook 'global-company-mode-hook #'company-quickhelp-mode)
-      :bind
-      ("C-c h" . company-quickhelp-manual-begin))
+  (use-package company-quickhelp          ; Documentation popups for Company
+    :ensure t
+    :defer t
+    :init (add-hook 'global-company-mode-hook #'company-quickhelp-mode)
+    :bind
+    ("C-c h" . company-quickhelp-manual-begin))
 
-    (use-package company-web-html
-      )
+  (use-package company-web-html
+    )
 
-    (use-package company-statistics
-      :config
-      (company-statistics-mode)
-      )
+  (use-package company-statistics
+    :config
+    (company-statistics-mode)
+    )
   )
 
 (defun setup-misc-modes ()
-  (use-package autobookmarks)
-  (use-package yaml-mode)
-  (use-package goto-last-change)
-  (use-package magit)
-  (use-package rainbow-mode)
-  (use-package nginx-mode)
-  ;(use-package multiple-cursors)
-  (use-package sourcepair)
+  (use-package yaml-mode
+    :ensure t
+    )
+
+  (use-package json-mode
+    :ensure t
+    )
+
+  (use-package goto-last-change
+    :ensure t
+    )
+  (use-package magit
+    :ensure t
+    )
+  (use-package rainbow-mode
+    :ensure t
+    )
+  (use-package nginx-mode
+    :ensure t
+    )
+                                        ;(use-package multiple-cursors)
+  (use-package sourcepair
+    )
   (use-package hl-tags-mode)
-  ;(use-package whole-line-or-region)
+                                        ;(use-package whole-line-or-region)
   (use-package grep-buffers)
   (use-package google-this
+    :ensure t
     :config
     (google-this-mode 1)
     )
-   (use-package protobuf-mode
-     :mode "\\.proto\\'"
-     )
+  (use-package protobuf-mode
+    :ensure t
+    :mode "\\.proto\\'"
+    )
 
   (use-package lua-mode
     :bind
     ("C-c C-b" . lua-goto-matching-block)
     )
 
-  ;(use-package modeline-git-branch)
+                                        ;(use-package modeline-git-branch)
   (use-package ibuffer
+    :ensure t
     :bind
     ("C-x C-b" . ibuffer)
     )
 
-  (use-package wgrep-ag)
-  (use-package iedit)
+  (use-package wgrep-ag
+    :ensure t
+    )
+  (use-package iedit
+    :ensure t
+    )
   (show-paren-mode 1)
 
   (use-package fiplr
@@ -595,7 +647,7 @@ inserted."
     )
 
   (use-package imenu-list
-    ;:defer t
+    :ensure t
     :config
     (setq imenu-list-focus-after-activation t
           imenu-list-auto-resize t)
@@ -604,17 +656,23 @@ inserted."
     )
 
   (use-package which-key
+    :ensure t
     :config
     (which-key-mode)
     )
 
   (use-package rg
+    :ensure t
+    :demand
     :config
     (rg-enable-default-bindings)
     (add-hook 'rg-mode-hook 'wgrep-ag-setup)
+    :bind
+    ("C-c g" . rg)
     )
 
   (use-package move-text
+    :ensure t
     :bind
     ([C-S-up] . move-text-up)
     ([C-S-down] . move-text-down)
@@ -623,13 +681,12 @@ inserted."
   ;; (use-package idle-highlight
   ;;   )
 
-  (use-package osx-dictionary
-    )
+  (use-package osx-dictionary :disabled )
 
   )
 
 (defun setup-window-management()
-  ;(desktop-save-mode 1)
+                                        ;(desktop-save-mode 1)
   ;; +-------------+---------+
   ;; |             | compile |
   ;; |     edit    | search  |
@@ -718,7 +775,7 @@ inserted."
     :init
     (purpose-mode)
     :config
-    ;(purpose-x-golden-ratio-setup)
+                                        ;(purpose-x-golden-ratio-setup)
     (purpose-x-code1-setup)
     :bind
     ("C-x 4" . purpose-x-code1-setup)
@@ -728,7 +785,7 @@ inserted."
     ;; ;; build it
     ;;(purpose-compile-user-configuration)
     )
-)
+  )
 
 (defun setup-ocaml ()
   ;;;; from https://github.com/diml/utopa
@@ -771,14 +828,18 @@ inserted."
   )
 
 (defun setup-theme ()
-  ;(load-theme 'brin)
-  (load-theme 'sanityinc-tomorrow-eighties)
+  (load-theme 'doom-spacegrey) ;sanityinc-tomorrow-eighties,
   )
 
 (defun setup-ido ()
-  (use-package browse-url) ;; ffap source says to load browse-url prior to ffap
-  (use-package ido-grid-mode)
+  (use-package browse-url
+    :ensure t
+    ) ;; ffap source says to load browse-url prior to ffap
+  (use-package ido-grid-mode
+    :ensure t
+    )
   (use-package ido
+    :ensure t
     :config
     (ido-mode 1)
     (ido-everywhere)
@@ -792,6 +853,7 @@ inserted."
     (setq ido-execute-command-cache nil))
 
   (use-package flx-ido
+    :ensure t
     :config
     (flx-ido-mode 1)
     ;; disable ido faces to see flx highlights.
@@ -835,6 +897,7 @@ inserted."
 
 (defun setup-hippie ()
   (use-package hippie-exp
+    :ensure t
     :config
     (setq hippie-expand-try-functions-list
           '(;;try-expand-dabbrev
@@ -853,19 +916,24 @@ inserted."
 
 (defun setup-yasnippets ()
   (use-package yasnippet
+    :ensure t
     :bind
     (:map yas-minor-mode-map
           ("TAB" . nil)
           ("<tab>" . nil)
           ("C-<tab>" . yas-expand)
           )
+    :config
+    (yas-reload-all)
     )
   (use-package yasnippet-snippets
+    :ensure t
     )
   )
 
 (defun setup-auto-complete ()
   (use-package auto-complete
+    :ensure t
     :commands auto-complete-mode
     :init
     (auto-complete-mode t)
@@ -898,8 +966,8 @@ inserted."
                      go-mode
                      web-mode
                      ocaml-mode
-                     ;tuareg-mode
-                     ;haskell-mode
+                                        ;tuareg-mode
+                                        ;haskell-mode
                      python-mode
                      ruby-mode
                      lua-mode
@@ -908,12 +976,12 @@ inserted."
                      css-mode
                      makefile-mode
                      sh-mode
-                     ;xml-mode
+                                        ;xml-mode
                      emacs-lisp-mode
-                     ;lisp-mode
-                     ;lisp-interaction-mode
-                     ;java-mode
-                     ;scheme-mode
+                                        ;lisp-mode
+                                        ;lisp-interaction-mode
+                                        ;java-mode
+                                        ;scheme-mode
                      protobuf-mode
                      ))
     (add-hook 'c-mode-common-hook (lambda ()
@@ -925,21 +993,19 @@ inserted."
     ;; (add-hook 'auto-complete-mode-hook 'ac-common-setup)
     )
 
-    (use-package ac-dabbrev
+  (use-package ac-dabbrev
     )
 
-    (use-package ac-c-headers
-      :ensure t
-      )
+  (use-package ac-c-headers :disabled)
 
-    (use-package go-autocomplete
-      :ensure t
-      :config
-      (add-hook 'go-mode-common-hook (lambda ()
-                                       (setq ac-sources shmul/ac-sources-go)))
-
-      )
-
+  (use-package go-autocomplete
+    :ensure t
+    :config
+    (add-hook 'go-mode-common-hook (lambda ()
+                                     (setq ac-sources shmul/ac-sources-go)))
+    (add-hook 'go-mode-common-hook
+              (lambda () (set (make-local-variable 'compile-command) (format "make -f %s" (get-closest-pathname)))))
+    )
 
   )
 
@@ -970,7 +1036,8 @@ inserted."
   )
 
 (defun setup-expand-region ()
-  (use-package expand-region-
+  (use-package expand-region
+    :ensure t
     :bind
     ("C-=" . er/expand-region)
     )
@@ -1038,6 +1105,7 @@ inserted."
 
 (defun setup-fuzzy ()
   (use-package fuzzy
+    :ensure t
     :config
     (turn-on-fuzzy-isearch)
     )
@@ -1092,113 +1160,41 @@ inserted."
     :config
     (exec-path-from-shell-copy-env "GOPATH")
     (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
-    (setq gofmt-command "goimports")
+    (setq gofmt-command "gofmt") ;; when goimports isn't so slow, use it again
     (defun my-go-mode-hook()
       (add-hook 'before-save-hook 'gofmt-before-save t)
                                         ; Customize compile command to run go build
-      (if (not (string-match "go" compile-command))
-          (set (make-local-variable 'compile-command)
-               "gb build"))
       (go-guru-hl-identifier-mode)
-      (yas-minor-mode-on)
+      (yas-minor-mode)
       )
 
     (add-hook 'go-mode-hook 'my-go-mode-hook)
+    ;; work around for flycheck error https://gitmemory.com/issue/flycheck/flycheck/1523/469402280
+    (let ((govet (flycheck-checker-get 'go-vet 'command)))
+      (when (equal (cadr govet) "tool")
+        (setf (cdr govet) (cddr govet))))
 
     ;;(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
     :bind
-    ("M-." . godef-jump)
-    ("C-M-." . pop-tag-mark)
+    (:map go-mode-map
+          ("M-." . godef-jump)
+          ("C-M-." . pop-tag-mark))
     )
 
-  (use-package golint
+  (use-package golint :disabled
     )
 
-  (use-package go-guru
-    :ensure t
+  (use-package go-guru :disabled
     )
 
   (use-package go-eldoc
+    :ensure t
     :config
     (add-hook 'go-mode-hook 'go-eldoc-setup)
     )
 
-  (defun gb-gopath ()
-    (defun zerok()
-      ;; from https://raw.githubusercontent.com/zerok/emacs-golang-gb/master/gb-gopath.el
-      ;; Experimental gb support for Emacs
-      ;; This updates the GOPATH inside buffers that work on files located inside
-      ;; of gb projects. For now this only works on Unix systems.
 
-      (defun zerok/setup-gb-gopath ()
-      (interactive)
-      (make-local-variable 'process-environment)
-      (let ((srcPath (_zerok/get-gb-src-folder buffer-file-name)))
-        (when srcPath
-          (let* ((projectPath (string-remove-suffix "/" (file-name-directory srcPath)))
-                 (vendorPath (string-remove-suffix "/" (concat projectPath "/vendor")))
-                 (gopath (concat vendorPath ":" projectPath)))
-            (message "Updating GOPATH to %s" gopath)
-            (setenv "GOPATH" gopath)))))
-
-    (defun _zerok/get-gb-src-folder (path)
-      (let ((parent (directory-file-name (file-name-directory path)))
-            (basename (file-name-nondirectory path)))
-        (cond ((equal "src" basename)
-               (string-remove-suffix "/" path))
-              ((equal "/" parent)
-               nil)
-              (t
-               (_zerok/get-gb-src-folder parent)))))
-
-    (add-hook 'go-mode-hook 'zerok/setup-gb-gopath)
-    )
-
-    (defun mamaar ()
-
-      ;; from https://gist.githubusercontent.com/mamaar/d3249329a01d1fee72d1/raw/99615d88f346e41426d7f553cacbd3256b0a45c6/init.el
-      (defun go-gb-src-path ()
-        ;; Get the src paths from GB tool
-        ;; Returns a list of paths or nil if not in a GB project
-        (let ((res (shell-command-to-string "gb env GB_SRC_PATH")))
-          (unless (string-prefix-p "FATAL" res)
-            (split-string res ":"))))
-
-
-      (defun split-remove-last-join (s)
-                                        ; Removes the last item of a string representing a path
-        (mapconcat 'identity
-                   (butlast
-                    (split-string s "/"))
-                   "/"))
-
-
-      (defun go-gb-environ (src-paths)
-        ;; Remove the src part from the GB project search directories
-        ;; to return the GOPATHs instead.
-        (mapcar
-         'split-remove-last-join
-         src-paths))
-
-      (defun go-path ()
-        (split-string (getenv "GOPATH") ":"))
-
-      (defun go-gb-unique-paths ()
-        (delete-dups
-         (nconc (go-gb-environ (go-gb-src-path))
-                (go-path))))
-
-      (defun go-gb-setup ()
-        (setenv "GOPATH" (mapconcat 'identity (go-gb-unique-paths) ":")))
-
-      (add-hook 'go-mode-hook 'go-gb-setup)
-      )
-
-    (mamaar)
-    )
-
-  (gb-gopath)
-
+  ;; see also - go get github.com/juntaki/gogtags for gnu global with golang
   )
 
 (defun setup-auto-indent ()
@@ -1251,6 +1247,22 @@ inserted."
            ))
   )
 
+(defun setup-dump-jump ()
+  (use-package dumb-jump
+    :ensure t
+    :config
+    (setq dumb-jump-force-searcher 'rg)
+    :bind (("M-g o" . dumb-jump-go-other-window)
+           ("M-g j" . dumb-jump-go)
+           ("M-g i" . dumb-jump-go-prompt)
+           ("M-g x" . dumb-jump-go-prefer-external)
+           ("M-g z" . dumb-jump-go-prefer-external-other-window)
+           ("M-." . dumb-jump-go)
+           )
+
+    )
+  )
+
 (defun setup-cscope ()
   (use-package xcscope
     :ensure t
@@ -1271,7 +1283,7 @@ inserted."
 
 
 (defun setup-smart-compile ()
-  ; from https://emacs.stackexchange.com/a/8137
+                                        ; from https://emacs.stackexchange.com/a/8137
   (use-package ansi-color
     :config
     (defun my/ansi-colorize-buffer ()
@@ -1316,86 +1328,86 @@ and you can reconfigure the compile args."
     :bind (("C-x C-m" . compile-again))
     )
 
-    ;; using https://stackoverflow.com/a/28268829
-;;     (setq compilation-last-buffer nil)
-;;     (defun compile-again (ARG)
-;;       "Run the same compile as the last time.
+  ;; using https://stackoverflow.com/a/28268829
+  ;;     (setq compilation-last-buffer nil)
+  ;;     (defun compile-again (ARG)
+  ;;       "Run the same compile as the last time.
 
-;; If there is no last time, or there is a prefix argument, this acts like M-x compile."
-;;       (interactive "p")
-;;       (if (and (eq ARG 1)
-;;                compilation-last-buffer)
-;;           (progn
-;;             (set-buffer compilation-last-buffer)
-;;             (revert-buffer t t))
-;;         (progn
-;;           (call-interactively 'smart-compile)
-;;           (setq cur (selected-window))
-;;           (setq w (get-buffer-window "*compilation*"))
-;;           (select-window w)
-;;           (setq h (window-height w))
-;;           (shrink-window (- h 10))
-;;           (select-window cur))))
+  ;; If there is no last time, or there is a prefix argument, this acts like M-x compile."
+  ;;       (interactive "p")
+  ;;       (if (and (eq ARG 1)
+  ;;                compilation-last-buffer)
+  ;;           (progn
+  ;;             (set-buffer compilation-last-buffer)
+  ;;             (revert-buffer t t))
+  ;;         (progn
+  ;;           (call-interactively 'smart-compile)
+  ;;           (setq cur (selected-window))
+  ;;           (setq w (get-buffer-window "*compilation*"))
+  ;;           (select-window w)
+  ;;           (setq h (window-height w))
+  ;;           (shrink-window (- h 10))
+  ;;           (select-window cur))))
 
-;;     (defun my-compilation-hook ()
-;;       "Make sure that the compile window is splitting vertically."
-;;       (progn
-;;         (if (not (get-buffer-window "*compilation*"))
-;;             (progn
-;;               (split-window-vertically)))))
-;;     (add-hook 'compilation-mode-hook 'my-compilation-hook)
-;;     (defun compilation-exit-autoclose (STATUS code msg)
-;;       "Close the compilation window if there was no error at all."
-;;       ;; If M-x compile exists with a 0
-;;       (when (and (eq STATUS 'exit) (zerop code))
-;;         ;; then bury the *compilation* buffer, so that C-x b doesn't go there
-;;         (bury-buffer)
-;;         ;; and delete the *compilation* window
-;;         (delete-window (get-buffer-window (get-buffer "*compilation*"))))
-;;       ;; Always return the anticipated result of compilation-exit-message-function
-;;       (cons msg code))
-;;     (setq compilation-exit-message-function 'compilation-exit-autoclose)
-;;     (defvar all-overlays ())
-;;     (defun delete-this-overlay(overlay is-after begin end &optional len)
-;;       (delete-overlay overlay)
-;;       )
-;;     (defun highlight-current-line ()
-;;       "Highlight current line."
-;;       (interactive)
-;;       (setq current-point (point))
-;;       (beginning-of-line)
-;;       (setq beg (point))
-;;       (forward-line 1)
-;;       (setq end (point))
-;;       ;; Create and place the overlay
-;;       (setq error-line-overlay (make-overlay 1 1))
+  ;;     (defun my-compilation-hook ()
+  ;;       "Make sure that the compile window is splitting vertically."
+  ;;       (progn
+  ;;         (if (not (get-buffer-window "*compilation*"))
+  ;;             (progn
+  ;;               (split-window-vertically)))))
+  ;;     (add-hook 'compilation-mode-hook 'my-compilation-hook)
+  ;;     (defun compilation-exit-autoclose (STATUS code msg)
+  ;;       "Close the compilation window if there was no error at all."
+  ;;       ;; If M-x compile exists with a 0
+  ;;       (when (and (eq STATUS 'exit) (zerop code))
+  ;;         ;; then bury the *compilation* buffer, so that C-x b doesn't go there
+  ;;         (bury-buffer)
+  ;;         ;; and delete the *compilation* window
+  ;;         (delete-window (get-buffer-window (get-buffer "*compilation*"))))
+  ;;       ;; Always return the anticipated result of compilation-exit-message-function
+  ;;       (cons msg code))
+  ;;     (setq compilation-exit-message-function 'compilation-exit-autoclose)
+  ;;     (defvar all-overlays ())
+  ;;     (defun delete-this-overlay(overlay is-after begin end &optional len)
+  ;;       (delete-overlay overlay)
+  ;;       )
+  ;;     (defun highlight-current-line ()
+  ;;       "Highlight current line."
+  ;;       (interactive)
+  ;;       (setq current-point (point))
+  ;;       (beginning-of-line)
+  ;;       (setq beg (point))
+  ;;       (forward-line 1)
+  ;;       (setq end (point))
+  ;;       ;; Create and place the overlay
+  ;;       (setq error-line-overlay (make-overlay 1 1))
 
-;;       ;; Append to list of all overlays
-;;       (setq all-overlays (cons error-line-overlay all-overlays))
+  ;;       ;; Append to list of all overlays
+  ;;       (setq all-overlays (cons error-line-overlay all-overlays))
 
-;;       (overlay-put error-line-overlay
-;;                    'face '(background-color . "red"))
-;;       (overlay-put error-line-overlay
-;;                    'modification-hooks (list 'delete-this-overlay))
-;;       (move-overlay error-line-overlay beg end)
-;;       (goto-char current-point))
+  ;;       (overlay-put error-line-overlay
+  ;;                    'face '(background-color . "red"))
+  ;;       (overlay-put error-line-overlay
+  ;;                    'modification-hooks (list 'delete-this-overlay))
+  ;;       (move-overlay error-line-overlay beg end)
+  ;;       (goto-char current-point))
 
-;;     (defun delete-all-overlays ()
-;;       "Delete all overlays"
-;;       (while all-overlays
-;;         (delete-overlay (car all-overlays))
-;;         (setq all-overlays (cdr all-overlays))))
-;;     (defun highlight-error-lines(compilation-buffer process-result)
-;;       (interactive)
-;;       (delete-all-overlays)
-;;       (condition-case nil
-;;           (while t
-;;             (next-error)
-;;             (highlight-current-line))
-;;         (error nil)))
-;;     (setq compilation-finish-functions 'highlight-error-lines)
+  ;;     (defun delete-all-overlays ()
+  ;;       "Delete all overlays"
+  ;;       (while all-overlays
+  ;;         (delete-overlay (car all-overlays))
+  ;;         (setq all-overlays (cdr all-overlays))))
+  ;;     (defun highlight-error-lines(compilation-buffer process-result)
+  ;;       (interactive)
+  ;;       (delete-all-overlays)
+  ;;       (condition-case nil
+  ;;           (while t
+  ;;             (next-error)
+  ;;             (highlight-current-line))
+  ;;         (error nil)))
+  ;;     (setq compilation-finish-functions 'highlight-error-lines)
 
-)
+  )
 
 (defun setup-markdown ()
   (use-package markdown-mode
@@ -1412,7 +1424,20 @@ and you can reconfigure the compile args."
 (defun setup-flycheck ()
   (use-package flycheck
     :ensure t
-    :init (global-flycheck-mode)
+    :init
+    ;;(global-flycheck-mode)
+    (add-hook 'go-mode-hook 'flycheck-mode)
+    )
+  (use-package add-node-modules-path
+    :ensure t
+    :init
+    (add-hook 'js-mode-hook 'add-node-modules-path)
+    )
+
+  (use-package flycheck-color-mode-line
+    :ensure t
+    :config
+    (add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
     )
   )
 
@@ -1440,7 +1465,7 @@ and you can reconfigure the compile args."
 
   ;; do things after package initialization
                                         ;(setup-smex)
-  (setup-igrep)
+  ;(setup-igrep)
   (setup-scrat)
   (setup-postack)
   (setup-tramp)
@@ -1460,21 +1485,23 @@ and you can reconfigure the compile args."
   (setup-fuzzy)
                                         ;(setup-git-gutter)
                                         ;(setup-docker)
+  (setup-gnu-global)
   (setup-go)
   (setup-theme)
   (setup-auto-indent)
                                         ;(setup-hilight)
   (setup-avy)
+  (setup-dump-jump)
                                         ;(setup-cscope)
   (setup-undo-tree)
   (setup-smart-compile)
   (setup-markdown)
   (setup-web-mode)
-                                        ;(setup-mode-line)
+  (setup-mode-line)
                                         ;(setup-helm)
                                         ;(setup-function-args)
                                         ;(setup-company)
-                                        ;(setup-flycheck)
+  (setup-flycheck)
   (setup-window-management)
                                         ;(setup-irony)
   (setup-c-coding)

@@ -112,7 +112,7 @@ buffer."
     ;; switch to `lisp-interaction-mode' (or whatever the initial
     ;; major mode is) if the buffer is in `fundamental-mode' (or
     ;; whatever the default major mode is)...
-    (if (equal mode-name (with-temp-buffer (funcall default-major-mode)
+    (if (equal mode-name (with-temp-buffer (funcall major-mode) ;; shmul changed this from default-major-mode
                                            mode-name))
         ;; but only if the buffer has not been fiddled with
         (unless live
