@@ -8,11 +8,6 @@ export DISPLAY=:0.0
 export EDITOR=/usr/bin/vim
 export PATH=$PATH:/Developer/usr/bin:~/bin
 
-export JAVA_HOME=/Library/Java/Home
-export GOROOT=/opt/local/lib/go
-export GOPATH=$HOME/dev/gw
-export PATH=$PATH:$GOROOT/bin
-export PATH=$PATH:$GOPATH/bin
 export HISTIGNORE="&:[bf]g:exit"
 export FIGNORE=".svn:"
 alias ll="ls -lhog"
@@ -38,12 +33,10 @@ case $TERM in
 esac
 
 export SUDO_PS1="\[\e[33;1;41m\][\u] \w \$\[\e[0m\] "
-alias tcpd='sudo tcpdump -s 0 -A -i en0 port 80'
-mkcdir() { mkdir -p $1; cd $1; }
-#[ -f ~/.git-bash-completion.sh ] && . ~/.git-bash-completion.sh
-. /opt/local/share/git/contrib/completion/git-completion.bash
 
-. /opt/local/share/git/contrib/completion/git-prompt.sh
+mkcdir() { mkdir -p $1; cd $1; }
+[ -f /usr/local/etc/bash_completion ] && . /usr/local/etc/bash_completion
+[ -f /usr/local/etc/bash_completion ] &&. /usr/local/share/git/contrib/completion/git-prompt.sh
 
 # if [ "$TERM" = "linux" ]
 # then
