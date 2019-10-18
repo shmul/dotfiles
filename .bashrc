@@ -6,15 +6,15 @@
 #export CDPATH=.:~:/mnt:/mnt/c/dev//mnt/c/dev/trunk/:/usr/src:/usr/lib:/usr/local
 export DISPLAY=:0.0
 export EDITOR=/usr/bin/vim
-export PATH=$PATH:/Developer/usr/bin:~/bin
-
+export PATH="/usr/local/bin:/usr/local/sbin:/usr/local/go/bin:$HOME/go/bin:$PATH"
 export HISTIGNORE="&:[bf]g:exit"
 export FIGNORE=".svn:"
 alias ll="ls -lhog"
-alias tree="ls -R | grep \":$\" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/ /' -e 's/-/|/'"
-alias renew="sudo ipconfig set en6 DHCP"
+export LESS='-R'
 
+alias pbs="pushd ../pbs.git; git pull;popd"
 #alias ssh=~/bin/iterm_bg_image
+alias killjh='pkill -f "ssh jumphost"'
 
 shopt -s histappend
 shopt -s cdspell
@@ -34,9 +34,10 @@ esac
 
 export SUDO_PS1="\[\e[33;1;41m\][\u] \w \$\[\e[0m\] "
 
-mkcdir() { mkdir -p $1; cd $1; }
-[ -f /usr/local/etc/bash_completion ] && . /usr/local/etc/bash_completion
-[ -f /usr/local/etc/bash_completion ] &&. /usr/local/share/git/contrib/completion/git-prompt.sh
+. /usr/local/etc/bash_completion.d/git-completion.bash
+. /usr/local/etc/bash_completion.d/git-prompt.sh
+
+[[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
 
 # if [ "$TERM" = "linux" ]
 # then
@@ -50,5 +51,13 @@ mkcdir() { mkdir -p $1; cd $1; }
 # if [ "\$(type -t __git_ps1)" ]; then
 #     PS1="$PS1 \$(__git_ps1 '(%s)')\n"
 # fi
-
+export GIT_PS1_SHOWDIRTYSTATE=1
 export PS1='\[\e]0;\w\a\]\[\e[32m\][$(date +%H:%M)] \u@\h \[\e[33m\]\w\[\e[0m\]$(__git_ps1)\n\$ '
+
+export GTAGSLABEL=pygments
+
+alias jh="ssh jumphost"
+[ -f ~/local/bin/funcs.sh ] & source ~/local/bin/funcs.sh
+[ -f ~/local/bin/bookmarks.sh ] & source ~/local/bin/bookmarks.sh
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
