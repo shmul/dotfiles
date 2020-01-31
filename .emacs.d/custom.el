@@ -21,8 +21,7 @@
  '(json-reformat:indent-width 2)
  '(package-selected-packages
    (quote
-    (dump-jump dumb-jump doom-themes json-mode flycheck-color-mode-line add-node-modules-path flycheck agtags fireplace gxref smart-mode-line yasnippet-snippets ac-js2 expand-region expand-region- go-eldoc fuzzy ac-dabbrev call-graph ggtags rotate xref-js2 js2-mode web-mode move-text imenu-list iedit wgrep-ag protobuf-mode google-this grep-buffers hl-tags-mode sourcepair nginx-mode rainbow-mode magit goto-last-change yaml-mode autobookmarks yasnippet auto-complete-config flx-ido postack scrat projectile rg which-key golden-ratio buffer-move markdown-mode undo-tree avy color-theme-sanityinc-tomorrow go-guru go-autocomplete auto-complete ido-grid-mode ac-c-headers exec-path-from-shell use-package)))
- '(projectile-mode t nil (projectile))
+    (multiple-cursors wgrep-ag json-mode projectile 0blayout scala-mode flycheck-golangci-lint dump-jump dumb-jump doom-themes flycheck-color-mode-line add-node-modules-path flycheck agtags fireplace gxref smart-mode-line yasnippet-snippets ac-js2 expand-region expand-region- go-eldoc fuzzy ac-dabbrev call-graph ggtags rotate xref-js2 js2-mode web-mode move-text imenu-list iedit protobuf-mode google-this grep-buffers hl-tags-mode sourcepair nginx-mode rainbow-mode magit goto-last-change yaml-mode autobookmarks yasnippet auto-complete-config flx-ido postack scrat rg which-key golden-ratio buffer-move markdown-mode undo-tree avy color-theme-sanityinc-tomorrow go-guru go-autocomplete auto-complete ido-grid-mode ac-c-headers exec-path-from-shell use-package)))
  '(rm-blacklist (quote ("golden" "yas" "google" "hl-p" "unto-tree" "ac")))
  '(tab-width 4)
  '(tool-bar-mode nil))

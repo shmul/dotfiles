@@ -5,6 +5,7 @@
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives
+             ;'("melpa" . "https://melpa.org/packages/")
              '("melpa-stable" . "https://stable.melpa.org/packages/"))
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 ;;(add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa"))
@@ -284,10 +285,6 @@
   (global-set-key (kbd "M-r") 'sacha/search-word-backward)
   (global-set-key (kbd "M-s") 'sacha/search-word-forward)
 
-  (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-  (global-set-key (kbd "C->") 'mc/mark-next-like-this)
-  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 
   (global-set-key (kbd "C-`") 'switch-to-previous-buffer)
   (global-set-key (kbd "C-c C-g") 'goto-address-at-point)
@@ -436,6 +433,11 @@
     :config
     ;;(setq call-graph-initial-max-depth 3)
     )
+
+  (require 'clang-format) ;; no clang-format package yed
+  (add-hook 'c-mode-common-hook (lambda ()
+                                  (add-hook (make-local-variable 'before-save-hook)
+                                            'clang-format-buffer)))
   )
 
 (defun setup-projectile ()
@@ -602,7 +604,16 @@ inserted."
   (use-package nginx-mode
     :ensure t
     )
-                                        ;(use-package multiple-cursors)
+
+  (use-package multiple-cursors
+    :ensure t
+    :bind
+    ("C-S-c C-S-c" . mc/edit-lines)
+    ("C->" . mc/mark-next-like-this)
+    ("C-<" . mc/mark-previous-like-this)
+    ("C-c C-<" . 'mc/mark-all-like-this)
+    )
+
   (use-package sourcepair
     )
   (use-package hl-tags-mode)
@@ -1169,10 +1180,11 @@ inserted."
       )
 
     (add-hook 'go-mode-hook 'my-go-mode-hook)
-    ;; work around for flycheck error https://gitmemory.com/issue/flycheck/flycheck/1523/469402280
-    (let ((govet (flycheck-checker-get 'go-vet 'command)))
-      (when (equal (cadr govet) "tool")
-        (setf (cdr govet) (cddr govet))))
+
+    ;; ;; work around for flycheck error https://gitmemory.com/issue/flycheck/flycheck/1523/469402280
+    ;; (let ((govet (flycheck-checker-get 'go-vet 'command)))
+    ;;   (when (equal (cadr govet) "tool")
+    ;;     (setf (cdr govet) (cddr govet))))
 
     ;;(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
     :bind
@@ -1193,6 +1205,10 @@ inserted."
     (add-hook 'go-mode-hook 'go-eldoc-setup)
     )
 
+  (use-package flycheck-golangci-lint
+    :ensure t
+    :hook (go-mode . flycheck-golangci-lint-setup)
+    )
 
   ;; see also - go get github.com/juntaki/gogtags for gnu global with golang
   )
