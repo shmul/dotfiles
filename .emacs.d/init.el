@@ -649,7 +649,7 @@ inserted."
     )
   (show-paren-mode 1)
 
-  (use-package fiplr
+  (use-package fiplr :disabled
     :config
     (setq fiplr-ignored-globs '((directories (".git" ".svn"))
                                 (files ("*.jpg" "*.png" "*.zip" "*.txt" "*.log" "*.orig" "*~"))))
@@ -680,6 +680,13 @@ inserted."
     (add-hook 'rg-mode-hook 'wgrep-ag-setup)
     :bind
     ("C-c g" . rg)
+    )
+
+
+  (use-package deadgrep
+    :ensure t
+    :bind
+    ("C-c d" . deadgrep)
     )
 
   (use-package move-text
@@ -1180,17 +1187,17 @@ inserted."
       )
 
     (add-hook 'go-mode-hook 'my-go-mode-hook)
-
+    (add-hook 'go-mode-hook 'lsp)
     ;; ;; work around for flycheck error https://gitmemory.com/issue/flycheck/flycheck/1523/469402280
     ;; (let ((govet (flycheck-checker-get 'go-vet 'command)))
     ;;   (when (equal (cadr govet) "tool")
     ;;     (setf (cdr govet) (cddr govet))))
 
     ;;(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
-    :bind
-    (:map go-mode-map
-          ("M-." . godef-jump)
-          ("C-M-." . pop-tag-mark))
+    ;; :bind
+    ;; (:map go-mode-map
+    ;;       ("M-." . godef-jump)
+    ;;       ("C-M-." . pop-tag-mark))
     )
 
   (use-package golint :disabled
@@ -1212,6 +1219,42 @@ inserted."
 
   ;; see also - go get github.com/juntaki/gogtags for gnu global with golang
   )
+
+(defun setup-lsp ()
+  (use-package lsp-mode
+    :ensure t
+    )
+
+  (use-package lsp-ui
+    :ensure t
+    :config
+    (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+    (setq
+     lsp-ui-doc-enable t
+     lsp-ui-doc-use-childframe t
+     lsp-ui-doc-position 'top
+     lsp-ui-doc-include-signature t
+     lsp-ui-sideline-enable nil
+     lsp-ui-flycheck-enable t
+     lsp-ui-flycheck-list-position 'right
+     lsp-ui-flycheck-live-reporting nil
+     lsp-ui-peek-enable t
+
+                                        ;lsp-enable-snippet nil
+     lsp-ui-doc-delay 1
+     lsp-ui-peek-list-width 60
+     lsp-ui-doc-max-height 18
+     lsp-ui-sideline-delay 2
+     ;lsp-ui-sideline-show-code-actions nil
+                                        ;lsp-ui-sideline-show-hover nil
+     )
+
+    :bind
+    (:map lsp-ui-mode-map
+          ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+          ([remap xref-find-references] . lsp-ui-peek-find-references))
+  )
+)
 
 (defun setup-auto-indent ()
 
@@ -1503,6 +1546,7 @@ and you can reconfigure the compile args."
                                         ;(setup-docker)
   (setup-gnu-global)
   (setup-go)
+  (setup-lsp)
   (setup-theme)
   (setup-auto-indent)
                                         ;(setup-hilight)
