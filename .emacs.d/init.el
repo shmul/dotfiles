@@ -687,6 +687,7 @@ inserted."
     :ensure t
     :bind
     ("C-c d" . deadgrep)
+    ("C-c D" . deadgrep)
     )
 
   (use-package move-text
@@ -699,7 +700,26 @@ inserted."
   ;; (use-package idle-highlight
   ;;   )
 
-  (use-package osx-dictionary :disabled )
+  (use-package vc-msg
+    :ensure t
+    :bind
+    ("C-c v" . vc-msg-show)
+
+    :config
+    (eval-after-load 'vc-msg-git
+      '(progn
+         ;; show code of commit
+         (setq vc-msg-git-show-commit-function 'magit-show-commit)
+         ;; open file of certain revision
+         (push '("m"
+                 "[m]agit-find-file"
+                 (lambda ()
+                   (let* ((info vc-msg-previous-commit-info)
+                          (git-dir (locate-dominating-file default-directory ".git")))
+                     (magit-find-file (plist-get info :id )
+                                      (concat git-dir (plist-get info :filename))))))
+               vc-msg-git-extra)))
+    )
 
   )
 
@@ -1188,6 +1208,8 @@ inserted."
 
     (add-hook 'go-mode-hook 'my-go-mode-hook)
     (add-hook 'go-mode-hook 'lsp)
+    ;(add-hook 'go-mode-hook 'flycheck-mode)
+
     ;; ;; work around for flycheck error https://gitmemory.com/issue/flycheck/flycheck/1523/469402280
     ;; (let ((govet (flycheck-checker-get 'go-vet 'command)))
     ;;   (when (equal (cadr govet) "tool")
@@ -1220,40 +1242,88 @@ inserted."
   ;; see also - go get github.com/juntaki/gogtags for gnu global with golang
   )
 
+;; https://ladicle.com/post/config/
+;; https://framagit.org/citreu/emacs.d/blob/master/etc/init-prog-edit.el
+;; https://github.com/CSRaghunandan/.emacs.d/blob/master/setup-files/setup-lsp.el
+;; https://www.mortens.dev/blog/emacs-and-the-language-server-protocol/
+;; https://github.com/emacs-lsp/lsp-ui
+
 (defun setup-lsp ()
   (use-package lsp-mode
     :ensure t
+    :hook (
+           (lsp-after-open . lsp-enable-imenu)
+           ((go-mode c-mode c++-mode) . lsp)
+           )
+    :bind
+    (:map lsp-mode-map
+          ("C-c C-r"   . lsp-rename)
+          ("C-c C-t" . lsp-describe-thing-at-point)
+          )
+    :config
+    (setq
+     lsp-prefer-flymake nil
+     lsp-document-sync-method 'incremental ;; none, full, incremental, or nil
+     lsp-response-timeout 10
+     lsp-eldoc-render-all t
+     lsp-clients-go-server-args '("--cache-style=always" "--diagnostics-style=onsave" "--format-style=goimports")
+     )
     )
 
   (use-package lsp-ui
     :ensure t
-    :config
-    (add-hook 'lsp-mode-hook 'lsp-ui-mode)
-    (setq
-     lsp-ui-doc-enable t
-     lsp-ui-doc-use-childframe t
-     lsp-ui-doc-position 'top
-     lsp-ui-doc-include-signature t
-     lsp-ui-sideline-enable nil
-     lsp-ui-flycheck-enable t
-     lsp-ui-flycheck-list-position 'right
-     lsp-ui-flycheck-live-reporting nil
-     lsp-ui-peek-enable t
 
-                                        ;lsp-enable-snippet nil
-     lsp-ui-doc-delay 1
-     lsp-ui-peek-list-width 60
-     lsp-ui-doc-max-height 18
-     lsp-ui-sideline-delay 2
-     ;lsp-ui-sideline-show-code-actions nil
-                                        ;lsp-ui-sideline-show-hover nil
-     )
+    :custom
+    (lsp-ui-doc-enable t)
+    (lsp-ui-doc-header t)
+    (lsp-ui-doc-include-signature nil)
+    (lsp-ui-doc-position 'top) ;; top, bottom, or at-point
+    (lsp-ui-doc-max-width 60)
+    (lsp-ui-doc-max-height 30)
+    (lsp-ui-doc-use-childframe t)
+    (lsp-ui-doc-use-webkit t)
+    (lsp-ui-doc-border "violet")
+    ;; lsp-ui-flycheck
+    (lsp-ui-flycheck-enable nil)
+    ;; lsp-ui-sideline
+    (lsp-ui-sideline-enable nil)
+    (lsp-ui-sideline-ignore-duplicate t)
+    (lsp-ui-sideline-show-symbol t)
+    (lsp-ui-sideline-show-hover t)
+    (lsp-ui-sideline-show-diagnostics nil)
+    (lsp-ui-sideline-show-code-actions t)
+    (lsp-ui-sideline-code-actions-prefix "")
+    (lsp-ui-sideline-delay 2)
+    (lsp-ui-sideline-update-mode 'line)
+    ;; lsp-ui-imenu
+    (lsp-ui-imenu-enable t)
+    (lsp-ui-imenu-kind-position 'top)
+    ;; lsp-ui-peek
+    (lsp-ui-peek-enable t)
+    (lsp-ui-peek-peek-height 20)
+    (lsp-ui-peek-list-width 50)
+    (lsp-ui-peek-fontify 'on-demand) ;; never, on-demand, or always
 
+    :preface
+    (defun ladicle/toggle-lsp-ui-doc ()
+      (interactive)
+      (if lsp-ui-doc-mode
+          (progn
+            (lsp-ui-doc-mode -1)
+            (lsp-ui-doc--hide-frame))
+        (lsp-ui-doc-mode 1)))
     :bind
-    (:map lsp-ui-mode-map
+    (:map lsp-mode-map
+          ("C-c m"   . lsp-ui-imenu)
+          ("C-c s"   . lsp-ui-sideline-mode)
+          ("C-c i"   . lsp-ui-peek-find-implementation)
           ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
           ([remap xref-find-references] . lsp-ui-peek-find-references))
-  )
+
+    :hook
+    (lsp-mode . lsp-ui-mode)
+    )
+
 )
 
 (defun setup-auto-indent ()
@@ -1485,7 +1555,6 @@ and you can reconfigure the compile args."
     :ensure t
     :init
     ;;(global-flycheck-mode)
-    (add-hook 'go-mode-hook 'flycheck-mode)
     )
   (use-package add-node-modules-path
     :ensure t
@@ -1532,7 +1601,6 @@ and you can reconfigure the compile args."
   (setup-ido)
   (setup-hippie)
   (setup-auto-complete)
-  (setup-yasnippets)
                                         ;(setup-swoop)
   (setup-expand-region)
   (setup-misc-modes)
@@ -1566,6 +1634,7 @@ and you can reconfigure the compile args."
                                         ;(setup-irony)
   (setup-c-coding)
   (setup-projectile)
+  (setup-yasnippets)
   (set-keys)
   (mode-hooks)
   (mode-mapping)
