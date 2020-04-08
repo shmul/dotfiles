@@ -1276,7 +1276,23 @@ inserted."
      lsp-response-timeout 10
      lsp-eldoc-render-all t
      lsp-clients-go-server-args '("--cache-style=always" "--diagnostics-style=onsave" "--format-style=goimports")
+
+     ;; from http://blog.binchen.org/posts/how-to-speed-up-lsp-mode.html
+     lsp-log-io nil
+     lsp-enable-folding nil
+      lsp-diagnostic-package :none
+      lsp-enable-snippet nil
+     lsp-enable-completion-at-point nil
+     lsp-enable-links nil
+     lsp-restart 'auto-restart
      )
+    (defvar lsp-on-touch-time 0)
+    (defadvice lsp-on-change (around lsp-on-change-hack activate)
+      ;; don't run `lsp-on-change' too frequently
+      (when (> (- (float-time (current-time))
+                  lsp-on-touch-time) 30) ;; 30 seconds
+        (setq lsp-on-touch-time (float-time (current-time)))
+        ad-do-it))
     )
 
   (use-package lsp-ui
