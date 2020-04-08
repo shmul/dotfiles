@@ -211,6 +211,8 @@
   (add-to-mode-list "\\.yaml$" 'yaml-mode)
   (add-to-mode-list "\\.md$" 'markdown-mode)
   (add-to-mode-list "\\.js$" 'js2-mode)
+  (add-to-mode-list "\\.j2$" 'jinja-mode)
+  (add-to-mode-list "\\.vue$" 'vue-mode)
 
   )
 
@@ -363,6 +365,10 @@
               (lambda ()
                 (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t))
               )
+    )
+
+  (use-package vue-mode
+    :ensure t
     )
   )
 
@@ -690,6 +696,9 @@ inserted."
     ("C-c D" . deadgrep)
     )
 
+  (use-package jinja2-mode
+    :ensure
+    )
   (use-package move-text
     :ensure t
     :bind
