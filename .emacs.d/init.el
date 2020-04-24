@@ -304,6 +304,12 @@
   (global-set-key (kbd "M-#") 'chris2-toggle-case)
   )
 
+(defun setup-delight ()
+  (use-package delight
+    :ensure t
+    )
+  )
+
 (defun setup-scrat ()
   (use-package scrat
     :config
@@ -449,6 +455,7 @@
 (defun setup-projectile ()
   (use-package projectile
     :ensure t
+    :delight
     :pin melpa-stable
     :config
     (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
@@ -627,6 +634,7 @@ inserted."
   (use-package grep-buffers)
   (use-package google-this
     :ensure t
+    :delight
     :config
     (google-this-mode 1)
     )
@@ -674,6 +682,7 @@ inserted."
 
   (use-package which-key
     :ensure t
+    :delight
     :config
     (which-key-mode)
     )
@@ -759,6 +768,7 @@ inserted."
 
   (use-package golden-ratio
     :ensure t
+    :delight
     :init
     (golden-ratio-mode 1)
     :config
@@ -981,6 +991,7 @@ inserted."
 (defun setup-auto-complete ()
   (use-package auto-complete
     :ensure t
+    :delight
     :commands auto-complete-mode
     :init
     (auto-complete-mode t)
@@ -1204,6 +1215,7 @@ inserted."
 
 (defun setup-go ()
   (use-package go-mode
+    :delight
     :config
     (exec-path-from-shell-copy-env "GOPATH")
     (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
@@ -1245,6 +1257,7 @@ inserted."
 
   (use-package flycheck-golangci-lint
     :ensure t
+    :delight
     :hook (go-mode . flycheck-golangci-lint-setup)
     )
 
@@ -1430,6 +1443,7 @@ inserted."
 (defun setup-undo-tree ()
   (use-package undo-tree
     :ensure t
+    :delight
     :config
     (global-undo-tree-mode)
     )
@@ -1619,6 +1633,8 @@ and you can reconfigure the compile args."
   ;; do things after package initialization
                                         ;(setup-smex)
   ;(setup-igrep)
+                                        ;(setup-igrep)
+  (setup-delight)
   (setup-scrat)
   (setup-postack)
   (setup-tramp)
