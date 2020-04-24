@@ -708,6 +708,7 @@ inserted."
   (use-package jinja2-mode
     :ensure
     )
+
   (use-package move-text
     :ensure t
     :bind
@@ -739,6 +740,10 @@ inserted."
                vc-msg-git-extra)))
     )
 
+  (use-package simple-modeline
+    :ensure t
+    :hook (after-init . simple-modeline-mode)
+    )
   )
 
 (defun setup-window-management()
