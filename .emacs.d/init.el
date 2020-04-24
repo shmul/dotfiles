@@ -890,7 +890,68 @@ inserted."
   )
 
 (defun setup-theme ()
-  (load-theme 'doom-spacegrey) ;sanityinc-tomorrow-eighties,
+  (use-package doom-themes
+    :config
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    (load-theme 'doom-city-lights t)
+
+    ;; Enable flashing mode-line on errors
+    (doom-themes-visual-bell-config)
+
+    ;; Enable custom neotree theme (all-the-icons must be installed!)
+    (doom-themes-neotree-config)
+    ;; or for treemacs users
+    (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
+    (doom-themes-treemacs-config)
+
+    (use-package doom-modeline :disabled
+      :ensure t
+      :init (doom-modeline-mode 1)
+      :config
+      (setq
+       doom-modeline-height 25
+       doom-modeline-buffer-encoding nil
+       find-file-visit-truename t
+       doom-modeline-buffer-file-name-style 'buffer-name
+       doom-modeline-icon nil
+       )
+      )
+    ;; also run M-x all-the-icons-install-fonts
+
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config))
+
+  (use-package darktooth-theme  :disabled
+    :ensure t
+    :config
+    (load-theme 'darktooth t)
+  )
+
+  )
+
+(defun setup-python ()
+  (use-package elpy :disabled
+    :ensure t
+    :delight
+    :init
+    (elpy-enable)
+    :config
+    (setq
+     elpy-rpc-virtualenv-path 'current)
+    (define-key elpy-mode-map (kbd "M-<left>") nil)
+    (define-key elpy-mode-map (kbd "M-<right>") nil)
+    (define-key elpy-mode-map (kbd "M-<down>") nil)
+    (define-key elpy-mode-map (kbd "M-<up>") nil)
+    )
+
+  (use-package yapfify
+    :ensure t
+    :delight
+    :config
+    (add-hook 'python-mode-hook 'yapf-mode)
+    )
   )
 
 (defun setup-ido ()
@@ -1298,10 +1359,11 @@ inserted."
      ;; from http://blog.binchen.org/posts/how-to-speed-up-lsp-mode.html
      lsp-log-io nil
      lsp-enable-folding nil
-      lsp-diagnostic-package :none
-      lsp-enable-snippet nil
+     lsp-diagnostic-package :none
+     lsp-enable-snippet nil
      lsp-enable-completion-at-point nil
      lsp-enable-links nil
+     lsp-enable-file-watchers nil
      lsp-restart 'auto-restart
      )
     (defvar lsp-on-touch-time 0)
@@ -1637,7 +1699,6 @@ and you can reconfigure the compile args."
 
   ;; do things after package initialization
                                         ;(setup-smex)
-  ;(setup-igrep)
                                         ;(setup-igrep)
   (setup-delight)
   (setup-scrat)
@@ -1661,6 +1722,7 @@ and you can reconfigure the compile args."
   (setup-gnu-global)
   (setup-go)
   (setup-lsp)
+  (setup-python)
   (setup-theme)
   (setup-auto-indent)
                                         ;(setup-hilight)
