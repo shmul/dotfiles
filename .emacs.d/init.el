@@ -277,8 +277,8 @@
   (global-set-key "\C-c>" 'open-init-el)
 
                                         ;(global-set-key (kbd "C-c M-w") 'append-to-register)
-  (global-set-key "\C-c\C-c" 'compile)
-  (global-set-key "\C-cC" 'recompile)
+  ;;(global-set-key "\C-c\C-c" 'compile)
+  ;;(global-set-key "\C-cC" 'recompile)
 
   (global-set-key (kbd "C-c C-<tab>") 'sourcepair-load)
 
@@ -354,7 +354,9 @@
     :config
     ;;(add-hook 'js2-mode-hook 'js-auto-beautify-mode)
     (add-hook 'js2-mode-hook (lambda () (setq js2-basic-offset 2)))
-    (setq js2-strict-trailing-comma-warning nil)
+    (setq js2-strict-trailing-comma-warning nil
+          js-indent-level 2
+          )
     ;; (defun my-js-mode-hook()
     ;;   (add-hook 'before-save-hook 'web-beautify-mode t))
     ;; (add-hook 'js2-mode-hook 'my-js-mode-hook)
@@ -373,9 +375,16 @@
               )
     )
 
+  (use-package typescript-mode
+    :ensure t
+    :config
+    (setq typescript-indent-level 2)
+    )
+
   (use-package vue-mode
     :ensure t
     )
+
   )
 
 (defun setup-mode-line ()
@@ -610,7 +619,12 @@ inserted."
     )
   (use-package magit
     :ensure t
+    :config
+    (setq
+     magit-section-initial-visibility-alist
+          '((stashes . hide) (untracked . hide) (unpushed . hide)))
     )
+
   (use-package rainbow-mode
     :ensure t
     )
@@ -744,6 +758,16 @@ inserted."
     :ensure t
     :hook (after-init . simple-modeline-mode)
     )
+
+  (use-package fzf
+    :ensure t
+    )
+
+  (use-package color-identifiers-mode :disabled
+    :ensure t
+    :hook (after-init . global-color-identifiers-mode)
+    )
+
   )
 
 (defun setup-window-management()
