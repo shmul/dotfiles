@@ -5,12 +5,13 @@
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives
-             ;'("melpa" . "https://melpa.org/packages/")
-             '("melpa-stable" . "https://stable.melpa.org/packages/"))
+             '("melpa-stable" . "https://stable.melpa.org/packages/")
+             '("melpa" . "https://melpa.org/packages/")
+             )
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 ;;(add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa"))
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/melpa"))
-(setq-default abbrev-mode t) ; should be set early
+;(setq-default abbrev-mode t) ; should be set early
 (package-initialize)
 
 (server-start)
@@ -182,6 +183,7 @@
   (add-to-mode-list "\\.perl$" 'perl-mode)
   (add-to-mode-list "\\.plx$" 'perl-mode)
   (add-to-mode-list "\\.pl$" 'perl-mode)
+  (add-to-mode-list "\\.py$" 'python-mode)
   (add-to-mode-list "\\.c$" 'c++-mode)
   (add-to-mode-list "\\.m$" 'objc-mode)
   (add-to-mode-list "\\.cc$" 'c++-mode)
@@ -304,9 +306,21 @@
   (global-set-key (kbd "M-#") 'chris2-toggle-case)
   )
 
+(defun setup-abbrev ()
+  :ensure t
+  :delight
+  )
+
 (defun setup-delight ()
+   (use-package simple-modeline
+     :ensure t
+     :hook (after-init . simple-modeline-mode)
+     )
+
   (use-package delight
     :ensure t
+    :config
+    (advice-add 'c-update-modeline :override #'ignore)
     )
   )
 
@@ -479,6 +493,12 @@
     :bind
     ;;("C-x C-f" . maybe-projectile-find-file)
 
+    )
+  )
+
+(defun setup-jira ()
+  (use-package org-jira
+    :ensure t
     )
   )
 
@@ -754,11 +774,6 @@ inserted."
                vc-msg-git-extra)))
     )
 
-  (use-package simple-modeline
-    :ensure t
-    :hook (after-init . simple-modeline-mode)
-    )
-
   (use-package fzf
     :ensure t
     )
@@ -768,6 +783,9 @@ inserted."
     :hook (after-init . global-color-identifiers-mode)
     )
 
+  (use-package whole-line-or-region
+    :ensure t
+    )
   )
 
 (defun setup-window-management()
@@ -953,7 +971,13 @@ inserted."
     (load-theme 'darktooth t)
   )
 
+  (use-package base16-theme :disabled
+    :ensure t
+    :config
+    (load-theme 'base16-eighties t)
+    )
   )
+
 
 (defun setup-python ()
   (use-package elpy :disabled
@@ -1064,6 +1088,7 @@ inserted."
 (defun setup-yasnippets ()
   (use-package yasnippet
     :ensure t
+    :delight yas-minor-mode
     :bind
     (:map yas-minor-mode-map
           ("TAB" . nil)
@@ -1075,6 +1100,30 @@ inserted."
     )
   (use-package yasnippet-snippets
     :ensure t
+    :delight
+    )
+  )
+
+(defun setup-zettlekasten ()
+  (use-package deft
+    :ensure t
+    :config
+    (setq
+     deft-default-extension "md"
+     deft-extensions '("md" "txt" "org")
+     deft-directory "~/Documents/notes"
+     deft-use-filename-as-title t
+     )
+    )
+
+  (use-package zetteldeft
+    :ensure t
+    :after deft
+    :config
+    ;;(zetteldeft-set-classic-keybindings)
+    (setq
+     zetteldeft-title-prefix "# "
+     )
     )
   )
 
@@ -1114,6 +1163,7 @@ inserted."
                      go-mode
                      web-mode
                      ocaml-mode
+                     rust-mode
                                         ;tuareg-mode
                                         ;haskell-mode
                      python-mode
@@ -1142,6 +1192,7 @@ inserted."
     )
 
   (use-package ac-dabbrev
+    :delight
     )
 
   (use-package ac-c-headers :disabled)
@@ -1339,8 +1390,11 @@ inserted."
   (use-package go-guru :disabled
     )
 
+  (use-package eldoc
+    :delight)
   (use-package go-eldoc
     :ensure t
+    :delight
     :config
     (add-hook 'go-mode-hook 'go-eldoc-setup)
     )
@@ -1352,6 +1406,29 @@ inserted."
     )
 
   ;; see also - go get github.com/juntaki/gogtags for gnu global with golang
+
+  (use-package gotest
+    :ensure t
+    )
+
+  (use-package go-playground
+    :ensure t
+    )
+  )
+
+(defun setup-rust ()
+  (use-package rustic
+    :ensure t
+    :delight
+    :init
+    (setq rustic-lsp-server 'rust-analyzer)
+
+    :config
+    (setq
+     lsp-rust-analyzer-server-command '("/usr/local/bin/rust-analyzer")
+     rustic-format-on-save t)
+    (add-hook 'rustic-mode-hook 'lsp)
+    )
   )
 
 ;; https://ladicle.com/post/config/
@@ -1363,9 +1440,11 @@ inserted."
 (defun setup-lsp ()
   (use-package lsp-mode
     :ensure t
+    :delight
+    :commands (lsp lsp-deferred)
     :hook (
            (lsp-after-open . lsp-enable-imenu)
-           ((go-mode c-mode c++-mode) . lsp)
+           ((go-mode c-mode c++-mode) . lsp-deferred)
            )
     :bind
     (:map lsp-mode-map
@@ -1403,7 +1482,7 @@ inserted."
     :ensure t
 
     :custom
-    (lsp-ui-doc-enable t)
+    (lsp-ui-doc-enable nil)
     (lsp-ui-doc-header t)
     (lsp-ui-doc-include-signature nil)
     (lsp-ui-doc-position 'top) ;; top, bottom, or at-point
@@ -1505,7 +1584,7 @@ inserted."
            ))
   )
 
-(defun setup-dump-jump ()
+(defun setup-dumb-jump ()
   (use-package dumb-jump
     :ensure t
     :config
@@ -1515,6 +1594,7 @@ inserted."
            ("M-g i" . dumb-jump-go-prompt)
            ("M-g x" . dumb-jump-go-prefer-external)
            ("M-g z" . dumb-jump-go-prefer-external-other-window)
+           ("M-g l" . dumb-jump-quick-look)
            ("M-." . dumb-jump-go)
            )
 
@@ -1584,7 +1664,7 @@ and you can reconfigure the compile args."
                    (get-buffer-create "*compilation*"))
                   (message "No Compilation Errors!")))))
 
-    :bind (("C-x C-m" . compile-again))
+    :bind (("C-c C-c" . compile-again))
     )
 
   ;; using https://stackoverflow.com/a/28268829
@@ -1721,10 +1801,11 @@ and you can reconfigure the compile args."
   (exec-path-from-shell-initialize)
   (load custom-file)
 
+  (setup-abbrev)
   ;; do things after package initialization
+  (setup-delight)
                                         ;(setup-smex)
                                         ;(setup-igrep)
-  (setup-delight)
   (setup-scrat)
   (setup-postack)
   (setup-tramp)
@@ -1744,14 +1825,15 @@ and you can reconfigure the compile args."
                                         ;(setup-git-gutter)
                                         ;(setup-docker)
   (setup-gnu-global)
-  (setup-go)
   (setup-lsp)
+  (setup-go)
+  (setup-rust)
   (setup-python)
   (setup-theme)
   (setup-auto-indent)
                                         ;(setup-hilight)
   (setup-avy)
-  (setup-dump-jump)
+  (setup-dumb-jump)
                                         ;(setup-cscope)
   (setup-undo-tree)
   (setup-smart-compile)
@@ -1767,9 +1849,12 @@ and you can reconfigure the compile args."
   (setup-c-coding)
   (setup-projectile)
   (setup-yasnippets)
+  (setup-zettlekasten)
   (set-keys)
   (mode-hooks)
   (mode-mapping)
+
+
   )
 
 (add-hook 'after-init-hook 'my-after-init-hook)
