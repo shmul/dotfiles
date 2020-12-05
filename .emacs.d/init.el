@@ -11,7 +11,7 @@
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 ;;(add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa"))
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/melpa"))
-;(setq-default abbrev-mode t) ; should be set early
+                                        ;(setq-default abbrev-mode t) ; should be set early
 (package-initialize)
 
 (server-start)
@@ -25,7 +25,7 @@
 (defvar linux-p (string-match "gnu/linux" (symbol-name system-type)))
 
 (setq use-package-verbose t)
-;(setq debug-on-error t)
+                                        ;(setq debug-on-error t)
 
 ;; based on a recommendation from https://github.com/lewang/flx
 (setq gc-cons-threshold 20000000)
@@ -168,7 +168,7 @@
   (add-hook 'sh-mode-hook 'my-sh-mode-hook)
   ;; (add-hook 'objc-mode-hook 'my-default-mode-hook)
   (add-hook 'web-mode-hook  'my-web-mode-hook)
-  ;(add-hook 'compilation-finish-functions 'my-shorten-filenames-in-compilation)
+                                        ;(add-hook 'compilation-finish-functions 'my-shorten-filenames-in-compilation)
 
   )
 
@@ -313,10 +313,10 @@
   )
 
 (defun setup-delight ()
-   (use-package simple-modeline
-     :ensure t
-     :hook (after-init . simple-modeline-mode)
-     )
+  (use-package simple-modeline
+    :ensure t
+    :hook (after-init . simple-modeline-mode)
+    )
 
   (use-package delight
     :ensure t
@@ -571,27 +571,33 @@ inserted."
 
   (use-package company
     :ensure t
+    :delight
     :defer t
+    :hook (after-init . simple-modeline-mode)
     :config
     (global-company-mode 1)
     (setq company-selection-wrap-around t
-          company-idle-delay            nil
+          company-idle-delay            0.5
           company-minimum-prefix-length 2
           company-show-numbers          t
           company-tooltip-limit         20
-          ompany-tooltip-align-annotations t
+          company-tooltip-align-annotations t
           company-dabbrev-downcase      nil
           company-dabbrev-ignore-case   nil
-          company-backends '(company-dabbrev-code company-dabbrev company-clang
-                                                  company-irony company-go company-keywords company-capf ))
-
+          company-backends          '(company-dabbrev-code
+                                      company-dabbrev
+                                      company-clang
+                                      ;company-irony
+                                      company-go
+                                      company-keywords
+                                      company-capf )
+          )
     (company-tng-configure-default)
     ;; Use numbers 0-9 (in addition to M-<num>) to select company completion candidates
     (mapc (lambda (x) (define-key company-active-map (format "%d" x) 'company-complete-number))
           (number-sequence 0 9))
 
     :bind
-    ("M-/" . company-complete)
     (:map company-active-map
           ("RET" . company-complete)
           ("C-n" . company-select-next)
@@ -606,7 +612,9 @@ inserted."
     (:map company-search-map
           ("RET" . company-complete)
           ("C-n" . company-select-next)
-          ("C-o" . company-other-backend))
+          ("C-o" . company-other-backend)
+                                        ;("M-/" . company-complete)
+          )
     )
 
 
@@ -617,13 +625,6 @@ inserted."
     :bind
     ("C-c h" . company-quickhelp-manual-begin))
 
-  (use-package company-web-html
-    )
-
-  (use-package company-statistics
-    :config
-    (company-statistics-mode)
-    )
   )
 
 (defun setup-misc-modes ()
@@ -643,7 +644,7 @@ inserted."
     :config
     (setq
      magit-section-initial-visibility-alist
-          '((stashes . hide) (untracked . hide) (unpushed . hide)))
+     '((stashes . hide) (untracked . hide) (unpushed . hide)))
     )
 
   (use-package rainbow-mode
@@ -974,7 +975,7 @@ inserted."
     :ensure t
     :config
     (load-theme 'darktooth t)
-  )
+    )
 
   (use-package base16-theme :disabled
     :ensure t
@@ -1205,6 +1206,7 @@ inserted."
 
   (use-package go-autocomplete
     :ensure t
+    :disabled
     :config
     (add-hook 'go-mode-common-hook (lambda ()
                                      (setq ac-sources shmul/ac-sources-go)))
@@ -1261,6 +1263,11 @@ inserted."
   )
 
 (defun setup-swiper ()
+  (use-package ivy
+    :ensure t
+    :delight
+    )
+
   (use-package swiper
     :config
     (ivy-mode 1)
@@ -1376,7 +1383,7 @@ inserted."
 
     (add-hook 'go-mode-hook 'my-go-mode-hook)
     (add-hook 'go-mode-hook 'lsp)
-    ;(add-hook 'go-mode-hook 'flycheck-mode)
+                                        ;(add-hook 'go-mode-hook 'flycheck-mode)
 
     ;; ;; work around for flycheck error https://gitmemory.com/issue/flycheck/flycheck/1523/469402280
     ;; (let ((govet (flycheck-checker-get 'go-vet 'command)))
@@ -1466,14 +1473,19 @@ inserted."
      lsp-clients-go-server-args '("--cache-style=always" "--diagnostics-style=onsave" "--format-style=goimports")
 
      ;; from http://blog.binchen.org/posts/how-to-speed-up-lsp-mode.html
+
      lsp-log-io nil
      lsp-enable-folding nil
      lsp-diagnostic-package :none
      lsp-enable-snippet nil
-     lsp-enable-completion-at-point nil
+     lsp-enable-completion-at-point t
      lsp-enable-links nil
      lsp-enable-file-watchers nil
      lsp-restart 'auto-restart
+     lsp-completion-provider :capf
+
+     ;; from https://emacs-lsp.github.io/lsp-mode/page/performance/
+     read-process-output-max (* 1024 1024) ;; 1mb
      )
     (defvar lsp-on-touch-time 0)
     (defadvice lsp-on-change (around lsp-on-change-hack activate)
@@ -1538,7 +1550,7 @@ inserted."
     (lsp-mode . lsp-ui-mode)
     )
 
-)
+  )
 
 (defun setup-auto-indent ()
 
@@ -1818,11 +1830,11 @@ and you can reconfigure the compile args."
                                         ;(setup-ocaml)
   (setup-ido)
   (setup-hippie)
-  (setup-auto-complete)
+                                        ;(setup-auto-complete)
                                         ;(setup-swoop)
   (setup-expand-region)
   (setup-misc-modes)
-                                        ;(setup-swiper)
+  (setup-swiper)
                                         ;(setup-corral)
                                         ;(setup-anzu)
                                         ;(setup-notes-taking)
@@ -1848,7 +1860,7 @@ and you can reconfigure the compile args."
   (setup-mode-line)
                                         ;(setup-helm)
                                         ;(setup-function-args)
-                                        ;(setup-company)
+  (setup-company)
   (setup-flycheck)
   (setup-window-management)
                                         ;(setup-irony)
