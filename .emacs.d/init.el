@@ -293,6 +293,7 @@
   (global-set-key (kbd "C-`") 'switch-to-previous-buffer)
   (global-set-key (kbd "C-c C-g") 'goto-address-at-point)
   (global-set-key (kbd "C-x m") 'magit-status)
+  (global-set-key (kbd "C-x g") 'magit-file-popup)
 
   (global-set-key (kbd "C-+") 'align)
   (global-set-key (kbd "C-c C-o") 'org-open-at-point)
@@ -786,6 +787,10 @@ inserted."
   (use-package whole-line-or-region
     :ensure t
     )
+
+  (use-package hcl-mode
+    :ensure t
+    )
   )
 
 (defun setup-window-management()
@@ -996,6 +1001,7 @@ inserted."
 
   (use-package yapfify
     :ensure t
+    :disabled
     :delight
     :config
     (add-hook 'python-mode-hook 'yapf-mode)
