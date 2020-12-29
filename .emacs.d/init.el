@@ -3,7 +3,10 @@
 ;; End:
 
 (require 'package)
-(setq package-enable-at-startup nil)
+(setq
+ inhibit-startup-screen t
+ package-enable-at-startup nil
+ )
 (add-to-list 'package-archives
              '("melpa-stable" . "https://stable.melpa.org/packages/")
              '("melpa" . "https://melpa.org/packages/")
@@ -220,6 +223,7 @@
 
 (defun setup-igrep ()
   (use-package igrep
+    :defer t
     :ensure t
     :commands (igrep igrep-find dired-do-igrep dired-do-igrep-find)
 
@@ -310,6 +314,7 @@
 (defun setup-abbrev ()
   :ensure t
   :delight
+  :defer t
   )
 
 (defun setup-delight ()
@@ -347,6 +352,7 @@
 
 (defun setup-tramp ()
   (use-package tramp
+    :defer t
     :ensure t
     :config
     (setq tramp-default-method "ssh")
@@ -355,8 +361,10 @@
 
 (defun setup-web-mode ()
   (use-package web-mode
+    :defer t
     :ensure t
     )
+
   (use-package web-beautify :disabled
     :config
     (setq web-beautify-js-program "/opt/local/bin/js-beautify")
@@ -366,6 +374,7 @@
     )
   (use-package js2-mode
     :ensure t
+    :defer t
     :config
     ;;(add-hook 'js2-mode-hook 'js-auto-beautify-mode)
     (add-hook 'js2-mode-hook (lambda () (setq js2-basic-offset 2)))
@@ -380,6 +389,7 @@
 
   (use-package xref-js2
     :ensure t
+    :defer t
     :config
     ;; (setq semantic-symref-filepattern-alist
     ;;       (append semantic-symref-filepattern-alist
@@ -392,12 +402,14 @@
 
   (use-package typescript-mode
     :ensure t
+    :defer t
     :config
     (setq typescript-indent-level 2)
     )
 
   (use-package vue-mode
     :ensure t
+    :defer t
     )
 
   )
@@ -572,7 +584,6 @@ inserted."
   (use-package company
     :ensure t
     :delight
-    :defer t
     :hook (after-init . simple-modeline-mode)
     :config
     (global-company-mode 1)
@@ -584,19 +595,13 @@ inserted."
           company-tooltip-align-annotations t
           company-dabbrev-downcase      nil
           company-dabbrev-ignore-case   nil
-          company-backends          '(company-dabbrev-code
-                                      company-dabbrev
-                                      company-clang
-                                      ;company-irony
-                                      company-go
-                                      company-keywords
-                                      company-capf )
           )
     (company-tng-configure-default)
     ;; Use numbers 0-9 (in addition to M-<num>) to select company completion candidates
     (mapc (lambda (x) (define-key company-active-map (format "%d" x) 'company-complete-number))
           (number-sequence 0 9))
-
+    ;; trigger completion on tab
+    (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
     :bind
     (:map company-active-map
           ("RET" . company-complete)
@@ -608,7 +613,8 @@ inserted."
           ("C-<" . company-select-first)
           ("C->" . company-select-last)
           ("M-<" . company-select-first)
-          ("M->" . company-select-last))
+          ("M->" . company-select-last)
+          )
     (:map company-search-map
           ("RET" . company-complete)
           ("C-n" . company-select-next)
@@ -639,8 +645,10 @@ inserted."
   (use-package goto-last-change
     :ensure t
     )
+
   (use-package magit
     :ensure t
+    :defer t
     :config
     (setq
      magit-section-initial-visibility-alist
@@ -820,6 +828,7 @@ inserted."
     )
 
   (use-package golden-ratio
+    :disabled
     :ensure t
     :delight
     :init
@@ -833,9 +842,17 @@ inserted."
     ("C-x 1" . zygospore-toggle-delete-other-windows)
     )
 
-  (use-package zoom :disabled
+  (use-package zoom
+    :ensure t
     :config
     (zoom-mode t)
+    (custom-set-variables
+     '(zoom-size '(0.618 . 0.618))
+     '(zoom-ignored-major-modes '(dired-mode markdown-mode))
+     '(zoom-ignored-buffer-names '("zoom.el" "init.el"))
+     '(zoom-ignored-buffer-name-regexps '("^*calc"))
+     '(zoom-ignore-predicates '((lambda () (> (count-lines (point-min) (point-max)) 10))))
+     )
     ;; (defun size-callback ()
     ;;   (cond ((> (frame-pixel-width) 1024) '(90 . 0.75))
     ;;         (t                            '(0.618 . 0.618))))
@@ -989,6 +1006,7 @@ inserted."
   (use-package elpy :disabled
     :ensure t
     :delight
+    :defer t
     :init
     (elpy-enable)
     :config
@@ -1000,9 +1018,8 @@ inserted."
     (define-key elpy-mode-map (kbd "M-<up>") nil)
     )
 
-  (use-package yapfify
+  (use-package yapfify :disabled
     :ensure t
-    :disabled
     :delight
     :config
     (add-hook 'python-mode-hook 'yapf-mode)
@@ -1272,6 +1289,7 @@ inserted."
     :config
     (ivy-mode 1)
     (setq ivy-use-virtual-buffers t)
+
     :bind
     ("\C-S" . swiper)
     ("\C-R"  . swiper)
@@ -1323,6 +1341,45 @@ inserted."
     )
   )
 
+(defun setup-selectrum ()
+  (use-package prescient
+    :ensure t
+    )
+  (use-package selectrum-prescient
+    :ensure t
+    )
+
+  (use-package selectrum
+    :ensure t
+    :config
+    (selectrum-mode +1)
+    (selectrum-prescient-mode +1)
+    (prescient-persist-mode +1)
+    )
+
+  ;; (use-package marginalia
+  ;;   :disabled
+  ;;   :ensure t
+  ;;   :bind (:map minibuffer-local-map
+  ;;               ("C-M-a" . marginalia-cycle)
+  ;;               ;; When using the Embark package, you can bind `marginalia-cycle' as an Embark action!
+  ;;               ;;:map embark-general-map
+  ;;               ;;     ("A" . marginalia-cycle)
+  ;;               )
+
+  ;;   ;; The :init configuration is always executed (Not lazy!)
+  ;;   :init
+
+  ;;   ;; Must be in the :init section of use-package such that the mode gets
+  ;;   ;; enabled right away. Note that this forces loading the package.
+  ;;   (marginalia-mode)
+
+  ;;   ;; When using Selectrum, ensure that Selectrum is refreshed when cycling annotations.
+  ;;   (advice-add #'marginalia-cycle :after
+  ;;               (lambda () (when (bound-and-true-p selectrum-mode) (selectrum-exhibit))))
+  ;;   )
+  )
+
 (defun setup-git-gutter ()
   (use-package git-gutter
 
@@ -1366,10 +1423,42 @@ inserted."
 
   )
 
+(defun setup-eglot ()
+  (use-package eldoc-box
+    :ensure t
+    :delight
+    )
+
+  (use-package eglot
+    :ensure t
+    :delight
+    defer t
+    :config
+    (add-to-list 'eglot-stay-out-of 'company)
+    :hook (go-mode . eglot-ensure)
+    :hook (eldoc-box-hover-mode . eldoc-box-hover-mode)
+  :bind
+  (:map eglot-mode-map
+        ("C-c C-r" . eglot-rename)
+        ("C-c C-a" . eglot-code-actions)
+        ("C-c C-t" . eglot-help-at-point)
+        )
+  )
+
+  (use-package flymake-diagnostic-at-point
+    :after flymake
+    :ensure t
+    :config
+    (add-hook 'flymake-mode-hook #'flymake-diagnostic-at-point-mode)
+    )
+
+  )
+
 
 (defun setup-go ()
   (use-package go-mode
     :delight
+    :defer t
     :config
     (exec-path-from-shell-copy-env "GOPATH")
     (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
@@ -1377,12 +1466,12 @@ inserted."
     (defun my-go-mode-hook()
       (add-hook 'before-save-hook 'gofmt-before-save t)
                                         ; Customize compile command to run go build
-      (go-guru-hl-identifier-mode)
+                                        ;(go-guru-hl-identifier-mode)
       (yas-minor-mode)
       )
 
     (add-hook 'go-mode-hook 'my-go-mode-hook)
-    (add-hook 'go-mode-hook 'lsp)
+                                        ;(add-hook 'go-mode-hook 'lsp)
                                         ;(add-hook 'go-mode-hook 'flycheck-mode)
 
     ;; ;; work around for flycheck error https://gitmemory.com/issue/flycheck/flycheck/1523/469402280
@@ -1405,14 +1494,17 @@ inserted."
 
   (use-package eldoc
     :delight)
+
   (use-package go-eldoc
     :ensure t
     :delight
+    :defer t
     :config
     (add-hook 'go-mode-hook 'go-eldoc-setup)
     )
 
   (use-package flycheck-golangci-lint
+    :disabled
     :ensure t
     :delight
     :hook (go-mode . flycheck-golangci-lint-setup)
@@ -1422,10 +1514,27 @@ inserted."
 
   (use-package gotest
     :ensure t
+    :defer t
+    )
+
+  (use-package go-dlv
+    :ensure t
+    :defer t
     )
 
   (use-package go-playground
     :ensure t
+    :defer t
+    )
+
+  (use-package company-go          ; Documentation popups for Company
+    :ensure t
+    :config
+    (setq company-tooltip-limit 20                      ; bigger popup window
+          company-idle-delay .3                         ; decrease delay before autocompletion popup shows
+          company-echo-delay 0                          ; remove annoying blinking
+          company-begin-commands '(self-insert-command) ; start autocompletion only after typin
+	  )
     )
   )
 
@@ -1433,6 +1542,7 @@ inserted."
   (use-package rustic
     :ensure t
     :delight
+    :defer t
     :init
     (setq rustic-lsp-server 'rust-analyzer)
 
@@ -1769,6 +1879,7 @@ and you can reconfigure the compile args."
 (defun setup-markdown ()
   (use-package markdown-mode
     :ensure t
+    :defer t
     :commands (markdown-mode gfm-mode)
     :config
     (setq markdown-command "multimarkdown")
@@ -1826,7 +1937,7 @@ and you can reconfigure the compile args."
                                         ;(setup-igrep)
   (setup-scrat)
   (setup-postack)
-  (setup-tramp)
+                                        ;(setup-tramp)
                                         ;(setup-ocaml)
   (setup-ido)
   (setup-hippie)
@@ -1834,16 +1945,19 @@ and you can reconfigure the compile args."
                                         ;(setup-swoop)
   (setup-expand-region)
   (setup-misc-modes)
-  (setup-swiper)
+                                        ;(setup-swiper)
+
                                         ;(setup-corral)
                                         ;(setup-anzu)
                                         ;(setup-notes-taking)
                                         ;(setup-smartwin)
   (setup-fuzzy)
+  (setup-selectrum)
                                         ;(setup-git-gutter)
                                         ;(setup-docker)
-  (setup-gnu-global)
-  (setup-lsp)
+  ;(setup-gnu-global)
+                                        ;(setup-lsp)
+  (setup-eglot)
   (setup-go)
   (setup-rust)
   (setup-python)
@@ -1861,13 +1975,13 @@ and you can reconfigure the compile args."
                                         ;(setup-helm)
                                         ;(setup-function-args)
   (setup-company)
-  (setup-flycheck)
+  ;(setup-flycheck)
   (setup-window-management)
                                         ;(setup-irony)
   (setup-c-coding)
   (setup-projectile)
   (setup-yasnippets)
-  (setup-zettlekasten)
+  ;(setup-zettlekasten)
   (set-keys)
   (mode-hooks)
   (mode-mapping)
