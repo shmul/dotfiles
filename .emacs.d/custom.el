@@ -69,7 +69,7 @@
         (count-lines
          (point-min)
          (point-max))
-        20))))
+        10))))
  '(zoom-ignored-buffer-name-regexps '("^*calc"))
  '(zoom-ignored-buffer-names '("zoom.el" "init.el"))
  '(zoom-ignored-major-modes '(dired-mode markdown-mode))

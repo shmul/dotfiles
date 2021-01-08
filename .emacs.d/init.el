@@ -543,44 +543,6 @@ inserted."
             (setq this-command 'company-complete-common)))
       (completion-at-point)))
 
-  ;; New function by RSW
-  (defun company-quit ()
-    "Insert any selected completion and quit completing."
-    (interactive)
-    (when (and company-selection-changed company--manual-action
-               (boundp 'company-tng--overlay) company-tng--overlay)
-      (company--insert-candidate
-       (nth company-selection company-candidates)))
-    (company-cancel))
-
-  ;; New function by RSW
-  (defun company-select-first ()
-    "Select first company completion candidate even if not visible."
-    (interactive)
-    (when (company-manual-begin)
-      (company-set-selection 0)))
-
-  ;; New function by RSW
-  (defun company-select-last ()
-    "Select last company completion candidate even if not visible."
-    (interactive)
-    (when (company-manual-begin)
-      (company-set-selection (1- company-candidates-length))))
-
-  ;; New function by RSW
-  (defun company-select-first-visible ()
-    "Select first visible company completion candidate."
-    (interactive)
-    (when (company-manual-begin)
-      (company-set-selection 0)))
-
-  ;; New function by RSW
-  (defun company-select-last-visible ()
-    "Select last visible company completion candidate."
-    (interactive)
-    (when (company-manual-begin)
-      (company-set-selection (1- company-candidates-length))))
-
   (use-package company
     :ensure t
     :delight
@@ -633,7 +595,9 @@ inserted."
 
   )
 
+
 (defun setup-misc-modes ()
+  (show-paren-mode 1)
   (use-package yaml-mode
     :ensure t
     )
@@ -705,7 +669,6 @@ inserted."
   (use-package iedit
     :ensure t
     )
-  (show-paren-mode 1)
 
   (use-package fiplr :disabled
     :config
