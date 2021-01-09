@@ -557,6 +557,7 @@ inserted."
           company-tooltip-align-annotations t
           company-dabbrev-downcase      nil
           company-dabbrev-ignore-case   nil
+          company-semantic-insert-arguments t
           )
     (company-tng-configure-default)
     ;; Use numbers 0-9 (in addition to M-<num>) to select company completion candidates
@@ -749,6 +750,7 @@ inserted."
 
   (use-package fzf
     :ensure t
+    :defer t
     )
 
   (use-package color-identifiers-mode :disabled
@@ -758,10 +760,19 @@ inserted."
 
   (use-package whole-line-or-region
     :ensure t
+    :defer t
     )
 
   (use-package hcl-mode
     :ensure t
+    :defer t
+    )
+
+  (use-package discover :disabled
+    :ensure t
+    :defer t
+    :init
+    (global-discover-mode 1)
     )
   )
 
@@ -1395,9 +1406,10 @@ inserted."
   (use-package eglot
     :ensure t
     :delight
-    defer t
+    :defer t
     :config
     (add-to-list 'eglot-stay-out-of 'company)
+    ;(setq eglot-ignored-server-capabilites (quote (:workspaceSymbolProvider)))
     :hook (go-mode . eglot-ensure)
     :hook (eldoc-box-hover-mode . eldoc-box-hover-mode)
   :bind
@@ -1422,6 +1434,7 @@ inserted."
   (use-package go-mode
     :delight
     :defer t
+
     :config
     (exec-path-from-shell-copy-env "GOPATH")
     (add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
@@ -1436,6 +1449,42 @@ inserted."
     (add-hook 'go-mode-hook 'my-go-mode-hook)
                                         ;(add-hook 'go-mode-hook 'lsp)
                                         ;(add-hook 'go-mode-hook 'flycheck-mode)
+    ;; from https://github.com/joaotavora/eglot/issues/574
+    (defun eglot-organize-imports ()
+      "Offer to execute the source.organizeImports code action."
+      (interactive)
+      (unless (eglot--server-capable :codeActionProvider)
+        (eglot--error "Server can't execute code actions!"))
+      (let* ((server (eglot--current-server-or-lose))
+             (actions (jsonrpc-request
+                       server
+                       :textDocument/codeAction
+                       (list :textDocument (eglot--TextDocumentIdentifier))))
+             (action (cl-find-if
+                      (jsonrpc-lambda (&key kind &allow-other-keys)
+                        (string-equal kind "source.organizeImports" ))
+                      actions)))
+        (when action
+          (eglot--dcase action
+            (((Command) command arguments)
+             (eglot-execute-command server (intern command) arguments))
+            (((CodeAction) edit command)
+             (when edit (eglot--apply-workspace-edit edit))
+             (when command
+               (eglot--dbind ((Command) command arguments) command
+                 (eglot-execute-command server (intern command) arguments))))))))
+
+    (defun eglot-organize-imports-on-save ()
+      (defun eglot-organize-imports-nosignal ()
+        "Run eglot-organize-imports, but demote errors to messages."
+        ;; Demote errors to work around
+        ;; https://github.com/joaotavora/eglot/issues/411#issuecomment-749305401
+        ;; so that we do not prevent subsequent save hooks from running
+        ;; if we encounter a spurious error.
+        (with-demoted-errors "Error: %s" (eglot-organize-imports)))
+      (add-hook 'before-save-hook #'eglot-organize-imports-on-save))
+
+    (add-hook 'go-mode-hook #'eglot-organize-imports-on-save)
 
     ;; ;; work around for flycheck error https://gitmemory.com/issue/flycheck/flycheck/1523/469402280
     ;; (let ((govet (flycheck-checker-get 'go-vet 'command)))
@@ -1492,6 +1541,7 @@ inserted."
 
   (use-package company-go          ; Documentation popups for Company
     :ensure t
+    :defer t
     :config
     (setq company-tooltip-limit 20                      ; bigger popup window
           company-idle-delay .3                         ; decrease delay before autocompletion popup shows
@@ -1919,7 +1969,7 @@ and you can reconfigure the compile args."
                                         ;(setup-git-gutter)
                                         ;(setup-docker)
   ;(setup-gnu-global)
-                                        ;(setup-lsp)
+  ;(setup-lsp)
   (setup-eglot)
   (setup-go)
   (setup-rust)
