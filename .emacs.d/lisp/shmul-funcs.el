@@ -725,3 +725,33 @@ of FILE in the current directory, suitable for creation"
         (message "Line %d: %s" line-number (buffer-string)))
       (kill-buffer log-buf))
     (kill-buffer commit-buf)))
+
+
+;; from https://www.reddit.com/r/emacs/comments/l51ocx/what_is_the_most_useful_part_of_your_emacs_config/gkrz1di?utm_source=share&utm_medium=web2x&context=3
+;;; C-a move-beginning-of-line-or-indentation
+(defun shmul/at-or-before-indentation-p ()
+  (save-excursion
+    (let ((old-point (point)))
+      (back-to-indentation)
+      (<= old-point (point)))))
+(defun shmul/move-beginning-of-line-or-indentation () (interactive)
+       "If at the begining of line go to previous line.
+ If at the indention go to begining of line.
+ Go to indention otherwise."
+       (cond ((bolp) (forward-line -1))
+             ((shmul/at-or-before-indentation-p) (move-beginning-of-line nil))
+             (t (back-to-indentation))))
+
+;;; C-e move-end-of-line-or-indentation
+(defun shmul/at-or-after-indentation-p ()
+  (save-excursion
+    (let ((old-point (point)))
+      (back-to-indentation)
+      (>= old-point (point)))))
+(defun shmul/move-end-of-line-or-indentation () (interactive)
+       "If at end of line go to next line.
+If at indentation go to end of line.
+Go to indentation otherwise"
+       (cond ((eolp) (forward-line 1))
+             ((shmul/at-or-after-indentation-p) (move-end-of-line nil))
+             (t (back-to-indentation))))

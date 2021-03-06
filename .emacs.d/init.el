@@ -216,7 +216,7 @@
   (add-to-mode-list "\\.yaml$" 'yaml-mode)
   (add-to-mode-list "\\.md$" 'markdown-mode)
   (add-to-mode-list "\\.js$" 'js2-mode)
-  (add-to-mode-list "\\.j2$" 'jinja-mode)
+  ;;(add-to-mode-list "\\.j2$" 'jinja2-mode)
   (add-to-mode-list "\\.vue$" 'vue-mode)
 
   )
@@ -309,6 +309,9 @@
   (global-set-key (kbd "M-<up>")    'windmove-up)
   (global-set-key (kbd "M-<down>")  'windmove-down)
   (global-set-key (kbd "M-#") 'chris2-toggle-case)
+
+                                        ;(global-set-key (kbd "C-a") 'shmul/move-beginning-of-line-or-indentation)
+                                        ;(global-set-key (kbd "C-e") 'shmul/move-end-of-line-or-indentation)
   )
 
 (defun setup-abbrev ()
@@ -564,7 +567,7 @@ inserted."
     (mapc (lambda (x) (define-key company-active-map (format "%d" x) 'company-complete-number))
           (number-sequence 0 9))
     ;; trigger completion on tab
-    (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
+                                        ;(define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
     :bind
     (:map company-active-map
           ("RET" . company-complete)
@@ -592,7 +595,14 @@ inserted."
     :defer t
     :init (add-hook 'global-company-mode-hook #'company-quickhelp-mode)
     :bind
-    ("C-c h" . company-quickhelp-manual-begin))
+    ("C-c h" . company-quickhelp-manual-begin)
+    )
+
+  (use-package company-restclient
+    :ensure t
+    :after restclient
+    :defer t
+    )
 
   )
 
@@ -774,6 +784,11 @@ inserted."
     :init
     (global-discover-mode 1)
     )
+
+  (use-package restclient
+    :ensure t
+    :defer t
+    )
   )
 
 (defun setup-window-management()
@@ -929,7 +944,7 @@ inserted."
   )
 
 (defun setup-theme ()
-  (use-package doom-themes
+  (use-package doom-themes :disabled
     :config
     ;; Global settings (defaults)
     (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
@@ -968,7 +983,7 @@ inserted."
     (load-theme 'darktooth t)
     )
 
-  (use-package base16-theme :disabled
+  (use-package base16-theme
     :ensure t
     :config
     (load-theme 'base16-eighties t)
@@ -1409,16 +1424,16 @@ inserted."
     :defer t
     :config
     (add-to-list 'eglot-stay-out-of 'company)
-    ;(setq eglot-ignored-server-capabilites (quote (:workspaceSymbolProvider)))
+                                        ;(setq eglot-ignored-server-capabilites (quote (:workspaceSymbolProvider)))
     :hook (go-mode . eglot-ensure)
     :hook (eldoc-box-hover-mode . eldoc-box-hover-mode)
-  :bind
-  (:map eglot-mode-map
-        ("C-c C-r" . eglot-rename)
-        ("C-c C-a" . eglot-code-actions)
-        ("C-c C-t" . eglot-help-at-point)
-        )
-  )
+    :bind
+    (:map eglot-mode-map
+          ("C-c C-r" . eglot-rename)
+          ("C-c C-a" . eglot-code-actions)
+          ("C-c C-t" . eglot-help-at-point)
+          )
+    )
 
   (use-package flymake-diagnostic-at-point
     :after flymake
@@ -1547,7 +1562,7 @@ inserted."
           company-idle-delay .3                         ; decrease delay before autocompletion popup shows
           company-echo-delay 0                          ; remove annoying blinking
           company-begin-commands '(self-insert-command) ; start autocompletion only after typin
-	  )
+	      )
     )
   )
 
@@ -1968,8 +1983,8 @@ and you can reconfigure the compile args."
   (setup-selectrum)
                                         ;(setup-git-gutter)
                                         ;(setup-docker)
-  ;(setup-gnu-global)
-  ;(setup-lsp)
+                                        ;(setup-gnu-global)
+                                        ;(setup-lsp)
   (setup-eglot)
   (setup-go)
   (setup-rust)
@@ -1988,13 +2003,13 @@ and you can reconfigure the compile args."
                                         ;(setup-helm)
                                         ;(setup-function-args)
   (setup-company)
-  ;(setup-flycheck)
+                                        ;(setup-flycheck)
   (setup-window-management)
                                         ;(setup-irony)
   (setup-c-coding)
   (setup-projectile)
   (setup-yasnippets)
-  ;(setup-zettlekasten)
+                                        ;(setup-zettlekasten)
   (set-keys)
   (mode-hooks)
   (mode-mapping)
