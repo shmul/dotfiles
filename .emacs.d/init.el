@@ -82,7 +82,7 @@
   (setq-default indent-tabs-mode nil)
   (setq tab-width 4)
   (line-number-mode 1)
-  (setq frame-title-format "%b - emacs")
+  (setq frame-title-format "%b")
   (column-number-mode 1)
   (setq scroll-step 1)
   (fset 'yes-or-no-p 'y-or-n-p)
@@ -553,7 +553,7 @@ inserted."
     :config
     (global-company-mode 1)
     (setq company-selection-wrap-around t
-          company-idle-delay            0.5
+          company-idle-delay            0.1
           company-minimum-prefix-length 2
           company-show-numbers          t
           company-tooltip-limit         20
@@ -567,7 +567,11 @@ inserted."
     (mapc (lambda (x) (define-key company-active-map (format "%d" x) 'company-complete-number))
           (number-sequence 0 9))
     ;; trigger completion on tab
-                                        ;(define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
+    (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
+    :custom
+    ;; Don't use company in the following modes
+    (company-global-modes '(not shell-mode))
+
     :bind
     (:map company-active-map
           ("RET" . company-complete)
@@ -789,6 +793,14 @@ inserted."
     :ensure t
     :defer t
     )
+
+  (use-package smartscan
+    :ensure t
+    :defer t
+    :init
+    (smartscan-mode 1)
+    )
+
   )
 
 (defun setup-window-management()
