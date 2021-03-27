@@ -7,7 +7,11 @@
   preloadindex = true
   whitespace=fix,-indent-with-non-tab,trailing-space,cr-at-eol,
   trustctime = false
-  pager = less -F -X
+  pager = diff-so-fancy | less --tabs=4 -RFX
+#  pager = delta
+
+[interactive]
+  diffFilter = delta --color-only
 
 [color]
   ui = auto
@@ -39,15 +43,29 @@
   last = log -10 --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
   ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --numstat
   gr = grep -Ii
+  grc = "!f() { git lg --all --grep=\"$1\"; }; f"
   gg = "!f() { A=$(pwd) && TOPLEVEL=$(git rev-parse --show-toplevel) && cd $TOPLEVEL && git grep --full-name -In $1 | xargs -I{} echo $TOPLEVEL/{} && cd $A; }; f"
   dry = "!f() { git merge-tree `git merge-base $2 $1` $2 $1; }; f"
+  jira = "!f() { git lg -10 --grep=ENG $1; }; f"
 
   prb = pull --rebase
   cp = cherry-pick
   mt = mergetool
+  brl = !git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
+  merged = !git branch --merged=main | grep -v main | grep -v stable | grep -v production
+  delmerged = !git branch -d $(git merged)
+  push-1=!git push origin $(git rev-parse --short HEAD^):$(git name-rev --name-only HEAD)
+  mergetest = "!f(){ git merge --no-commit --no-ff \"$1\"; git merge --abort; echo \"Merge aborted\"; };f "
 
 [merge]
   tool = opendiff
+
+[diff]
+    tool = opendiff
+[difftool]
+    prompt = false
+[difftool "opendiff"]
+    cmd = /usr/bin/opendiff \"$LOCAL\" \"$REMOTE\" -merge \"$MERGED\"
 
 [mergetool "p4merge"]
   cmd = p4merge "$BASE" "$LOCAL" "$REMOTE" "$MERGED"
