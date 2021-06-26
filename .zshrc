@@ -33,7 +33,7 @@ ZSH_THEME="zeta"
 # export UPDATE_ZSH_DAYS=13
 
 # Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS=true
+DISABLE_MAGIC_FUNCTIONS=true
 
 # Uncomment the following line to disable colors in ls.
 # DISABLE_LS_COLORS="true"
@@ -72,7 +72,13 @@ plugins=(
     git
     zsh-z
     zsh-autosuggestions
+    fzf-zsh
+    ssh-agent
+    zsh-syntax-highlighting # must be the last plugin sourced
 )
+
+# IMPORTANT: put these settings before the line that sources oh-my-zsh
+zstyle :omz:plugins:ssh-agent agent-forwarding on
 
 source $ZSH/oh-my-zsh.sh
 
@@ -103,12 +109,21 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias d='dirs -v | head -10'
 alias -g G='| grep -i'
-
-alias jh="ssh jumphost"
+alias tac='tail -r'
+alias jh="~/bin/cato_knock_mac && ssh new-jumphost"
 alias pbs="pushd ../pbs.git; git pull;popd"
 #alias ssh=~/bin/iterm_bg_image
-alias killjh='pkill -f "ssh jumphost"'
+alias killjh='pkill -f "ssh new-jumphost"; jh'
+
 
 [ -f ~/local/bin/funcs.sh ] && source ~/local/bin/funcs.sh
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+[ -f ~/.zsh_profile ] && source ~/.zsh_profile
+
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+
+if [[ "$(uname)" == "Darwin" ]]; then
+    ulimit -n 1024
+fi
