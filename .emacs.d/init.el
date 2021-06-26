@@ -553,7 +553,7 @@ inserted."
     :config
     (global-company-mode 1)
     (setq company-selection-wrap-around t
-          company-idle-delay            0.1
+          company-idle-delay            0.5
           company-minimum-prefix-length 2
           company-show-numbers          t
           company-tooltip-limit         20
@@ -710,7 +710,8 @@ inserted."
     )
 
   (use-package rg
-    :ensure t
+    :disabled
+    ;;:ensure t
     :demand
     :config
     (rg-enable-default-bindings)
@@ -728,6 +729,7 @@ inserted."
     )
 
   (use-package jinja2-mode
+    :disabled
     :ensure
     )
 
@@ -2036,3 +2038,4 @@ and you can reconfigure the compile args."
 (load "shmul-funcs")
 
 (setq custom-file "~/.emacs.d/custom.el")
+(put 'downcase-region 'disabled nil)
