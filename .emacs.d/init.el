@@ -8,8 +8,8 @@
  package-enable-at-startup nil
  )
 (add-to-list 'package-archives
-             '("melpa-stable" . "https://stable.melpa.org/packages/")
              '("melpa" . "https://melpa.org/packages/")
+             ;'("melpa-stable" . "https://stable.melpa.org/packages/")
              )
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 ;;(add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa"))
@@ -28,6 +28,8 @@
 (defvar linux-p (string-match "gnu/linux" (symbol-name system-type)))
 
 (setq use-package-verbose t)
+(use-package exec-path-from-shell
+  :ensure t)
                                         ;(setq debug-on-error t)
 
 ;; based on a recommendation from https://github.com/lewang/flx
@@ -64,6 +66,7 @@
 
 (defun system-setup ()
   (when macosx-p
+    (tool-bar-mode -1)
     (setq mac-option-modifier 'meta)
     (setq default-input-method "MacOSX")
     (add-to-list
@@ -278,8 +281,6 @@
   (global-set-key "\C-co" 'other-window)
   (global-set-key "\C-cm" 'buffer-menu)
 
-  (global-set-key "\C-cg" 'igrep)
-  (global-set-key "\C-cG" 'igrep-find)
   (global-set-key "\C-c>" 'open-init-el)
 
                                         ;(global-set-key (kbd "C-c M-w") 'append-to-register)
@@ -322,6 +323,7 @@
 
 (defun setup-delight ()
   (use-package simple-modeline
+:disabled
     :ensure t
     :hook (after-init . simple-modeline-mode)
     )
@@ -495,7 +497,6 @@
   (use-package projectile
     :ensure t
     :delight
-    :pin melpa-stable
     :config
     (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
     (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
@@ -575,6 +576,7 @@ inserted."
     :bind
     (:map company-active-map
           ("RET" . company-complete)
+          ("TAB" . company-complete)
           ("C-n" . company-select-next)
           ("C-o" . company-other-backend)
           ("C-p" . company-select-previous)
@@ -587,6 +589,7 @@ inserted."
           )
     (:map company-search-map
           ("RET" . company-complete)
+          ("TAB" . company-complete)
           ("C-n" . company-select-next)
           ("C-o" . company-other-backend)
                                         ;("M-/" . company-complete)
@@ -610,6 +613,22 @@ inserted."
 
   )
 
+(defun setup-fancy-dabbrev ()
+
+  (use-package fancy-dabbrev
+    :ensure t
+    :defer t
+    :commands (fancy-dabbrev-mode)
+    :config
+    (setq
+     fancy-dabbrev-preview-delay 0.1
+     fancy-dabbrev-preview-context 'before-non-word
+     fancy-dabbrev-expansion-on-preview-only t
+     fancy-dabbrev-indent-command 'tab-to-tab-stop
+     company-frontends '(company-preview-frontend)
+     )
+    )
+  )
 
 (defun setup-misc-modes ()
   (show-paren-mode 1)
@@ -709,9 +728,8 @@ inserted."
     (which-key-mode)
     )
 
-  (use-package rg
-    :disabled
-    ;;:ensure t
+  (use-package ripgrep
+    :ensure t
     :demand
     :config
     (rg-enable-default-bindings)
@@ -803,6 +821,25 @@ inserted."
     (smartscan-mode 1)
     )
 
+  (use-package all-the-icons
+    :ensure t
+    :defer t
+    )
+
+  (use-package neotree
+    :ensure t
+    :defer t
+    :config
+    (setq
+     neo-theme (if (display-graphic-p) 'icons 'arrow))
+    )
+
+  (use-package wsd-mode
+    :ensure t
+    :defer t
+    :init
+    (add-hook 'wsd-mode-hook #'company-mode)
+    )
   )
 
 (defun setup-window-management()
@@ -854,7 +891,7 @@ inserted."
      '(zoom-ignored-major-modes '(dired-mode markdown-mode))
      '(zoom-ignored-buffer-names '("zoom.el" "init.el"))
      '(zoom-ignored-buffer-name-regexps '("^*calc"))
-     '(zoom-ignore-predicates '((lambda () (> (count-lines (point-min) (point-max)) 10))))
+     '(zoom-ignore-predicates '((lambda () (< (count-lines (point-min) (point-max)) 10))))
      )
     ;; (defun size-callback ()
     ;;   (cond ((> (frame-pixel-width) 1024) '(90 . 0.75))
@@ -1967,14 +2004,41 @@ and you can reconfigure the compile args."
     )
   )
 
+(defun setup-containers ()
+  (use-package terraform-mode
+    :ensure t
+    :init
+    (add-hook 'terraform-mode-hook #'terraform-format-on-save-mode)
+    )
+
+  (use-package company-terraform
+    :ensure t
+    )
+
+  (use-package terraform-doc
+    :ensure t
+    )
+
+  (use-package k8s-mode
+    :ensure t
+    :hook
+    (k8s-mode . yas-minor-mode)
+  )
+
+  (use-package kubel
+    :ensure t
+    )
+  )
+
+
 
 (defun my-after-init-hook ()
   (exec-path-from-shell-initialize)
   (load custom-file)
-
+  (setup-delight)
   (setup-abbrev)
   ;; do things after package initialization
-  (setup-delight)
+
                                         ;(setup-smex)
                                         ;(setup-igrep)
   (setup-scrat)
@@ -1982,7 +2046,7 @@ and you can reconfigure the compile args."
                                         ;(setup-tramp)
                                         ;(setup-ocaml)
   (setup-ido)
-  (setup-hippie)
+
                                         ;(setup-auto-complete)
                                         ;(setup-swoop)
   (setup-expand-region)
@@ -2001,7 +2065,7 @@ and you can reconfigure the compile args."
                                         ;(setup-lsp)
   (setup-eglot)
   (setup-go)
-  (setup-rust)
+  ;(setup-rust)
   (setup-python)
   (setup-theme)
   (setup-auto-indent)
@@ -2016,13 +2080,16 @@ and you can reconfigure the compile args."
   (setup-mode-line)
                                         ;(setup-helm)
                                         ;(setup-function-args)
+  (setup-hippie)
   (setup-company)
+  (setup-fancy-dabbrev)
                                         ;(setup-flycheck)
   (setup-window-management)
                                         ;(setup-irony)
   (setup-c-coding)
   (setup-projectile)
   (setup-yasnippets)
+  (setup-containers)
                                         ;(setup-zettlekasten)
   (set-keys)
   (mode-hooks)
