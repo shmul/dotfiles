@@ -132,3 +132,10 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 if [[ "$(uname)" == "Darwin" ]]; then
     ulimit -n 1024
 fi
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /opt/homebrew/bin/terraform terraform
+unsetopt share_history
+
+source /Users/shmulikregev/.config/broot/launcher/bash/br
+eval "$(mcfly init zsh)"
