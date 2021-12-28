@@ -18,7 +18,7 @@ setopt HIST_FIND_NO_DUPS
 setopt HIST_SAVE_NO_DUPS
 setopt HIST_BEEP
 
-export PATH="/usr/local/bin:/usr/local/sbin:/usr/local/go/bin:$HOME/go/bin:$HOME/.cargo/bin:$PATH"
+# moved to .zshenv export PATH="/usr/local/bin:/usr/local/sbin:/usr/local/go/bin:$HOME/go/bin:/opt/homebrew/bin:$PATH"
 #if [ -f ~/.bashrc ]; then
 #   source ~/.bashrc
 #fi

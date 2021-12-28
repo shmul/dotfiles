@@ -72,8 +72,10 @@ plugins=(
     git
     zsh-z
     zsh-autosuggestions
-    fzf-zsh
+    #fzf-zsh
     ssh-agent
+    docker
+    kube-ps1
     zsh-syntax-highlighting # must be the last plugin sourced
 )
 
@@ -81,6 +83,8 @@ plugins=(
 zstyle :omz:plugins:ssh-agent agent-forwarding on
 
 source $ZSH/oh-my-zsh.sh
+source <(kubectl completion zsh)
+source <(helm completion zsh)
 
 # User configuration
 
@@ -114,6 +118,7 @@ alias jh="~/bin/cato_knock_mac && ssh new-jumphost"
 alias pbs="pushd ../pbs.git; git pull;popd"
 #alias ssh=~/bin/iterm_bg_image
 alias killjh='pkill -f "ssh new-jumphost"; jh'
+alias k=kubectl
 
 
 [ -f ~/local/bin/funcs.sh ] && source ~/local/bin/funcs.sh
