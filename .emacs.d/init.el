@@ -13,8 +13,7 @@
              )
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp"))
 ;;(add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa"))
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/melpa"))
-                                        ;(setq-default abbrev-mode t) ; should be set early
+
 (package-initialize)
 
 (server-start)
@@ -221,6 +220,7 @@
   (add-to-mode-list "\\.js$" 'js2-mode)
   ;;(add-to-mode-list "\\.j2$" 'jinja2-mode)
   (add-to-mode-list "\\.vue$" 'vue-mode)
+  (add-to-mode-list "drafts.md" 'auto-save-visited-mode)
 
   )
 
@@ -298,7 +298,7 @@
   (global-set-key (kbd "C-`") 'switch-to-previous-buffer)
   (global-set-key (kbd "C-c C-g") 'goto-address-at-point)
   (global-set-key (kbd "C-x m") 'magit-status)
-  (global-set-key (kbd "C-x g") 'magit-file-popup)
+  (global-set-key (kbd "C-x M") 'magit-file-dispatch)
 
   (global-set-key (kbd "C-+") 'align)
   (global-set-key (kbd "C-c C-o") 'org-open-at-point)
@@ -565,7 +565,7 @@ inserted."
           )
     (company-tng-configure-default)
     ;; Use numbers 0-9 (in addition to M-<num>) to select company completion candidates
-    (mapc (lambda (x) (define-key company-active-map (format "%d" x) 'company-complete-number))
+    (mapc (lambda (x) (define-key company-active-map (format "%d" x) 'company-complete-tooltip-row))
           (number-sequence 0 9))
     ;; trigger completion on tab
     (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
@@ -840,6 +840,36 @@ inserted."
     :init
     (add-hook 'wsd-mode-hook #'company-mode)
     )
+  ;; from https://tech.toryanderson.com/2021/09/24/replacing-beacon.el-with-hl-line-flash/
+  (use-package hl-line+
+    :hook
+    (window-scroll-functions . hl-line-flash)
+    (focus-in . hl-line-flash)
+    (post-command . hl-line-flash)
+
+    :custom
+    (global-hl-line-mode nil)
+    (hl-line-flash-show-period 0.5)
+    (hl-line-inhibit-highlighting-for-modes '(dired-mode))
+    (hl-line-overlay-priority -100) ;; sadly, seems not observed by diredfl
+    )
+
+  (use-package hl-block-mode
+    :ensure t
+    :commands hl-block-mode
+    :config
+    (setq hl-block-bracket nil)    ;; Match all brackets.
+    (setq hl-block-single-level t) ;; Only one pair of brackets.
+    (setq hl-block-style 'color-tint)
+    :hook ((prog-mode) . hl-block-mode)
+    )
+
+  (use-package sql-indent
+    :ensure t
+    :hook
+    (sql-mode . sqlind-minor-mode)
+    )
+
   )
 
 (defun setup-window-management()
@@ -1476,7 +1506,7 @@ inserted."
     :config
     (add-to-list 'eglot-stay-out-of 'company)
                                         ;(setq eglot-ignored-server-capabilites (quote (:workspaceSymbolProvider)))
-    :hook (go-mode . eglot-ensure)
+    (add-hook 'go-mode-hook 'eglot-ensure)
     :hook (eldoc-box-hover-mode . eldoc-box-hover-mode)
     :bind
     (:map eglot-mode-map
@@ -1796,13 +1826,17 @@ inserted."
     :ensure t
     :config
     (setq dumb-jump-force-searcher 'rg)
-    :bind (("M-g o" . dumb-jump-go-other-window)
-           ("M-g j" . dumb-jump-go)
-           ("M-g i" . dumb-jump-go-prompt)
-           ("M-g x" . dumb-jump-go-prefer-external)
-           ("M-g z" . dumb-jump-go-prefer-external-other-window)
-           ("M-g l" . dumb-jump-quick-look)
+    (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+    (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+
+    :bind (
            ("M-." . dumb-jump-go)
+           ;; ("M-g o" . dumb-jump-go-other-window)
+           ;; ("M-g j" . dumb-jump-go)
+           ;; ("M-g i" . dumb-jump-go-prompt)
+           ;; ("M-g x" . dumb-jump-go-prefer-external)
+           ;; ("M-g z" . dumb-jump-go-prefer-external-other-window)
+           ;; ("M-g l" . dumb-jump-quick-look)
            )
 
     )
@@ -2016,6 +2050,10 @@ and you can reconfigure the compile args."
     )
 
   (use-package terraform-doc
+    :ensure t
+    )
+
+  (use-package dockerfile-mode
     :ensure t
     )
 
